@@ -1,11 +1,11 @@
 # commander
-`lxu.command.BasicCommand` wrapper for typical MODO commands
+##`lxu.command.BasicCommand` wrapper for typical MODO commands
 
 Commander is a clean, simple wrapper for writing MODO commands with common UI elements like popup lists and string fields with popup hints (i.e. ``'sPresetText'``). The wrapper reduces clutter, redundant code, and common mistakes.
 
 To implement a command, just include the commander module and, when creating your command class, extend `commander.Commander` instead of `lxu.command.BasicCommand` as you normally would.
 
-```
+```python
 import commander
 
 class CommandClass(commander.Commander):
@@ -20,7 +20,7 @@ Hooray! You now have a first-class MODO command. Type `bacon.and.eggs` into the 
 
 But it really gets nice when you want to ask the user for something.
 
-```
+```python
 import commander
 
 class CommandClass(commander.Commander):
@@ -49,7 +49,7 @@ The above isn't a big advantage over the traditional `lxu.basic.BasicCommand` im
 
 Usually you want to include fancy stuff like popup menus for limiting your user's options, or `'sPresetText'` fields for suggesting possible values while allowing for arbitrary choices. Those take quite a lot of extra legwork with `BasicCommand`, but not with `commander`:
 
-```
+```python
 import commander
 
 class CommandClass(commander.Commander):
