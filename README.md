@@ -83,29 +83,29 @@ lx.bless(CommandClass, 'breakfast')
 
 The only required fields for each argument are `'name'` and `'datatype'`. `'name'` is an arbitrary alphanumeric string. `'datatype'` can be any of the following:
 
-- 'acceleration'
-- 'angle'
-- 'angle3'
-- 'axis'
-- 'boolean'
-- 'color'
-- 'color1'
-- 'date'
-- 'datetime'
-- 'filepath'
-- 'float'
-- 'float3'
-- 'force'
-- 'integer'
-- 'light'
-- 'mass'
-- 'percent'
-- 'percent3'
-- 'speed'
-- 'string'
-- 'time'
-- 'uvcoord'
-- 'vertmapname'
+- `'acceleration'`
+- `'angle'`
+- `'angle3'`
+- `'axis'`
+- `'boolean'`
+- `'color'`
+- `'color1'`
+- `'date'`
+- `'datetime'`
+- `'filepath'`
+- `'float'`
+- `'float3'`
+- `'force'`
+- `'integer'`
+- `'light'`
+- `'mass'`
+- `'percent'`
+- `'percent3'`
+- `'speed'`
+- `'string'`
+- `'time'`
+- `'uvcoord'`
+- `'vertmapname'`
 
 Include any of the above datatype strings, and `commander` will handle the rest, insuring that you always grab the correct python datatype for a given argument type. (No more accidentally trying to grab an sTYPE_STRING from an integer field or vise-verse.)
 
