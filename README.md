@@ -9,6 +9,7 @@ To implement a command, just include the commander module and, when creating you
 import commander
 
 class CommandClass(commander.Commander):
+  _commander_last_used = []
 
   def commander_execute(self, msg, flags):
     lx.out(' and '.join(['bacon', 'eggs']))
@@ -18,12 +19,15 @@ lx.bless(CommandClass, 'breakfast')
 
 Hooray! You now have a first-class MODO command. Type `breakfast` into the MODO command line, and read your delicious result.
 
+The only slightly weird bit is that you have to include the `_commander_last_used` definition in your class, otherwise things will go sideways as soon as you use the class more than once. Just trust me on that one.
+
 But it really gets nice when you want to ask the user for something.
 
 ```python
 import commander
 
 class CommandClass(commander.Commander):
+  _commander_last_used = []
 
   def commander_arguments():
     return [
@@ -53,6 +57,7 @@ Usually you want to include fancy stuff like popup menus for limiting your user'
 import commander
 
 class CommandClass(commander.Commander):
+  _commander_last_used = []
 
   def commander_arguments():
     return [
@@ -121,6 +126,31 @@ def commander_notifiers(self):
 ```
 
 The above listens for changes to polygon and/or item selection and updates form elements accordingly. If you're familiar with notifiers in MODO, you'll know how maniacally I laugh every time I implement this.
+
+You can even build Form Command Lists (a list of programmatically-generated buttons in a form) by including an `'fcl'` parameter containing the list of commands to display.
+
+```python
+class CommandClass(commander.Commander):
+    _commander_last_used = []
+
+    def commander_arguments(self):
+        return [
+                {
+                    'name': 'myGreatQuery',
+                    'label': 'Query This',
+                    'datatype': 'integer',
+                    'value': '',
+                    'fcl': ['render', 'render', 'render'],
+                    'flags': ['query'],
+                }
+            ]
+
+lx.bless(CommandClass, CMD_NAME)
+```
+
+The above example lists the buttons `'render'`, `'render'`, and `'render'` all in a row in your form. Money. (If you've ever done this before manually... you just peed your pants.)
+
+Okay, I'm getting silly now.
 
 Sigh. Why can't life always be this easy?
 
