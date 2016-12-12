@@ -33,7 +33,7 @@ class CommandClass(tagger.Commander):
         lx.out("%s, %s" (greeting, myGreatString))
 """
 
-__version__ = "0.1"
+__version__ = "0.11"
 __author__ = "Adam"
 
 import lx, lxu, traceback
@@ -52,6 +52,7 @@ sTYPE_FLOATs = [
         'acceleration',
         'angle',
         'axis',
+        'color1',
         'float',
         'force',
         'light',
@@ -63,16 +64,18 @@ sTYPE_FLOATs = [
     ]
 
 sTYPE_STRINGs = [
-        'angle3',
-        'color',
-        'color1',
         'date',
         'datetime',
         'filepath',
-        'float3',
-        'percent3',
         'string',
         'vertmapname'
+    ]
+
+sTYPE_STRING_vectors = [
+        'angle3',
+        'color',
+        'float3',
+        'percent3'
     ]
 
 sTYPE_INTEGERs = [
@@ -143,6 +146,9 @@ class Commander(lxu.command.BasicCommand):
             if self.commander_arguments()[index][ARG_DATATYPE].lower() in sTYPE_STRINGs:
                 return self.dyna_String(index)
 
+            elif self.commander_arguments()[index][ARG_DATATYPE].lower() in sTYPE_STRING_vectors:
+                return [float(i) for i in self.dyna_String(index).split(" ")]
+
             elif self.commander_arguments()[index][ARG_DATATYPE].lower() in sTYPE_INTEGERs:
                 return self.dyna_Int(index)
 
@@ -183,6 +189,9 @@ class Commander(lxu.command.BasicCommand):
             if self._commander_last_used[n] != None and ARG_DATATYPE in argument:
 
                 if argument[ARG_DATATYPE].lower() in sTYPE_STRINGs:
+                    self.attr_SetString(n, str(self._commander_last_used[n]))
+
+                elif argument[ARG_DATATYPE].lower() in sTYPE_STRING_vectors:
                     self.attr_SetString(n, str(self._commander_last_used[n]))
 
                 elif argument[ARG_DATATYPE].lower() in sTYPE_INTEGERs:
