@@ -113,6 +113,15 @@ And yes, `commander` will even parse your vectors so that a `'color'` field retu
 
 `commander` also bubble wraps your entire `commander_execute()` command in a nice, safe `try/except` statement with traceback for debugging.
 
+You can also add notifiers to update your popup queries when other things happen in the app.
+
+```python
+def commander_notifiers(self):
+    return [("select.event", "polygon +ldt"),("select.event", "item +ldt")]
+```
+
+The above listens for changes to polygon and/or item selection and updates form elements accordingly. If you're familiar with notifiers in MODO, you'll know how maniacally I laugh every time I implement this.
+
 Sigh. Why can't life always be this easy?
 
 Enjoy.

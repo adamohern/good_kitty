@@ -33,7 +33,7 @@ class CommandClass(tagger.Commander):
         lx.out("%s, %s" (greeting, myGreatString))
 """
 
-__version__ = "0.11"
+__version__ = "0.12"
 __author__ = "Adam"
 
 import lx, lxu, traceback
@@ -138,6 +138,20 @@ class Commander(lxu.command.BasicCommand):
                 if flags:
                     self.basic_SetFlags(n, reduce(ior, flags))
 
+        self.notifiers = []
+        self.notifier_tuples = tuple([i for i in self.commander_notifiers()])
+        self.not_svc = lx.service.NotifySys()
+
+        for i in self.notifier_tuples:
+            self.notifiers.append(None)
+
+        self.notifier0 = None
+        self.notifier1 = None
+        self.notifier2 = None
+        self.notifier3 = None
+        self.notifier4 = None
+        self.notifier5 = None
+
     def commander_arguments(self):
         return []
 
@@ -162,6 +176,71 @@ class Commander(lxu.command.BasicCommand):
 
     def commander_args_count(self):
         return len(self._arguments)
+
+    def commander_notifiers(self):
+        return []
+
+    def cmd_NotifyAddClient(self, argument, object):
+        if len(self.notifier_tuples) > 0:
+            if self.notifier0 is None:
+                self.notifier0 = self.not_svc.Spawn (self.notifier_tuples[0][0], self.notifier_tuples[0][1])
+
+            self.notifier0.AddClient (object)
+
+        if len(self.notifier_tuples) > 1:
+            if self.notifier1 is None:
+                self.notifier1 = self.not_svc.Spawn (self.notifier_tuples[1][0], self.notifier_tuples[1][1])
+
+            self.notifier1.AddClient (object)
+
+        if len(self.notifier_tuples) > 2:
+            if self.notifier2 is None:
+                self.notifier2 = self.not_svc.Spawn (self.notifier_tuples[2][0], self.notifier_tuples[2][1])
+
+            self.notifier2.AddClient (object)
+
+        if len(self.notifier_tuples) > 3:
+            if self.notifier3 is None:
+                self.notifier3 = self.not_svc.Spawn (self.notifier_tuples[3][0], self.notifier_tuples[3][1])
+
+            self.notifier3.AddClient (object)
+
+        if len(self.notifier_tuples) > 4:
+            if self.notifier4 is None:
+                self.notifier4 = self.not_svc.Spawn (self.notifier_tuples[4][0], self.notifier_tuples[4][1])
+
+            self.notifier4.AddClient (object)
+
+        if len(self.notifier_tuples) > 5:
+            if self.notifier5 is None:
+                self.notifier5 = self.not_svc.Spawn (self.notifier_tuples[5][0], self.notifier_tuples[5][1])
+
+            self.notifier5.AddClient (object)
+
+    def cmd_NotifyRemoveClient(self, object):
+        if len(self.notifier_tuples) > 0:
+            if self.notifier0 is not None:
+                self.notifier0.RemoveClient (object)
+
+        if len(self.notifier_tuples) > 1:
+            if self.notifier1 is not None:
+                self.notifier1.RemoveClient (object)
+
+        if len(self.notifier_tuples) > 2:
+            if self.notifier2 is not None:
+                self.notifier2.RemoveClient (object)
+
+        if len(self.notifier_tuples) > 3:
+            if self.notifier3 is not None:
+                self.notifier3.RemoveClient (object)
+
+        if len(self.notifier_tuples) > 4:
+            if self.notifier4 is not None:
+                self.notifier4.RemoveClient (object)
+
+        if len(self.notifier_tuples) > 5:
+            if self.notifier5 is not None:
+                self.notifier5.RemoveClient (object)
 
     def cmd_Flags(self):
         return lx.symbol.fCMD_POSTCMD | lx.symbol.fCMD_MODEL | lx.symbol.fCMD_UNDO
@@ -226,10 +305,10 @@ class Commander(lxu.command.BasicCommand):
         except:
             lx.out(traceback.format_exc())
 
-    # def cmd_Query(self,index,vaQuery):
-    #     va = lx.object.ValueArray()
-    #     va.set(vaQuery)
-    #     for n, argument in enumerate(self.commander_arguments()):
-    #         if index == n:
-    #             va.AddString(self._commander_last_used[1])
-    #     return lx.result.OK
+    def cmd_Query(self,index,vaQuery):
+        va = lx.object.ValueArray()
+        va.set(vaQuery)
+        for n, argument in enumerate(self.commander_arguments()):
+            if index == n:
+                va.AddString(self._commander_last_used[n])
+        return lx.result.OK
