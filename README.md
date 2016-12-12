@@ -16,7 +16,7 @@ class CommandClass(commander.Commander):
 lx.bless(CommandClass, 'breakfast')
 ```
 
-Hooray! You now have a first-class MODO command. Type `bacon.and.eggs` into the MODO command line, and read your delicious result.
+Hooray! You now have a first-class MODO command. Type `breakfast` into the MODO command line, and read your delicious result.
 
 But it really gets nice when you want to ask the user for something.
 
