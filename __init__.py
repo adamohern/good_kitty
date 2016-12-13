@@ -32,7 +32,7 @@ class CommandClass(tagger.Commander):
         lx.out("%s, %s" (greeting, myGreatString))
 """
 
-__version__ = "0.14"
+__version__ = "0.15"
 __author__ = "Adam"
 
 import lx, lxu, traceback
@@ -214,12 +214,12 @@ class Commander(lxu.command.BasicCommand):
     def arg_UIValueHints(self, index):
         args = self.commander_arguments()
         if index < len(args):
-            if args[index].get(ARG_POPUP):
-                return PopupClass(args[index][ARG_POPUP])
-            elif args[index].get(ARG_sPresetText):
-                return PopupClass(args[index][ARG_sPresetText])
-            elif args[index].get(ARG_FCL):
-                return FormCommandListClass(args[index][ARG_FCL])
+            if args[index].get(ARG_POPUP, None) is not None:
+                return PopupClass(args[index].get(ARG_POPUP, []))
+            elif args[index].get(ARG_sPresetText, None) is not None:
+                return PopupClass(args[index].get(ARG_sPresetText, []))
+            elif args[index].get(ARG_FCL, None) is not None:
+                return FormCommandListClass(args[index].get(ARG_FCL, []))
 
     def cmd_DialogInit(self):
         for n, argument in enumerate(self.commander_arguments()):
