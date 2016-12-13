@@ -33,7 +33,7 @@ class CommandClass(tagger.Commander):
         lx.out("%s, %s" (greeting, myGreatString))
 """
 
-__version__ = "0.12"
+__version__ = "0.13"
 __author__ = "Adam"
 
 import lx, lxu, traceback
@@ -45,6 +45,7 @@ ARG_LABEL = 'label'
 ARG_VALUE = 'value'
 ARG_DATATYPE = 'datatype'
 ARG_POPUP = 'popup'
+ARG_FCL = 'fcl'
 ARG_FLAGS = 'flags'
 ARG_sPresetText = 'sPresetText'
 
@@ -85,6 +86,19 @@ sTYPE_INTEGERs = [
 sTYPE_BOOLEANs = [
         'boolean'
     ]
+
+class FormCommandListClass(UIValueHints):
+    def __init__(self, items):
+        self._items = items
+
+    def uiv_Flags(self):
+        return lx.symbol.fVALHINT_FORM_COMMAND_LIST
+
+    def uiv_FormCommandListCount(self):
+        return len(self._items)
+
+    def uiv_FormCommandListByIndex(self,index):
+        return self._items[index]
 
 class PopupClass(UIValueHints):
     def __init__(self, items):
@@ -145,13 +159,6 @@ class Commander(lxu.command.BasicCommand):
         for i in self.notifier_tuples:
             self.notifiers.append(None)
 
-        self.notifier0 = None
-        self.notifier1 = None
-        self.notifier2 = None
-        self.notifier3 = None
-        self.notifier4 = None
-        self.notifier5 = None
-
     def commander_arguments(self):
         return []
 
@@ -181,66 +188,16 @@ class Commander(lxu.command.BasicCommand):
         return []
 
     def cmd_NotifyAddClient(self, argument, object):
-        if len(self.notifier_tuples) > 0:
-            if self.notifier0 is None:
-                self.notifier0 = self.not_svc.Spawn (self.notifier_tuples[0][0], self.notifier_tuples[0][1])
+        for i, tup in enumerate(self.notifier_tuples):
+            if self.notifiers[i] is None:
+                self.notifiers[i] = self.not_svc.Spawn (self.notifier_tuples[i][0], self.notifier_tuples[i][1])
 
-            self.notifier0.AddClient (object)
-
-        if len(self.notifier_tuples) > 1:
-            if self.notifier1 is None:
-                self.notifier1 = self.not_svc.Spawn (self.notifier_tuples[1][0], self.notifier_tuples[1][1])
-
-            self.notifier1.AddClient (object)
-
-        if len(self.notifier_tuples) > 2:
-            if self.notifier2 is None:
-                self.notifier2 = self.not_svc.Spawn (self.notifier_tuples[2][0], self.notifier_tuples[2][1])
-
-            self.notifier2.AddClient (object)
-
-        if len(self.notifier_tuples) > 3:
-            if self.notifier3 is None:
-                self.notifier3 = self.not_svc.Spawn (self.notifier_tuples[3][0], self.notifier_tuples[3][1])
-
-            self.notifier3.AddClient (object)
-
-        if len(self.notifier_tuples) > 4:
-            if self.notifier4 is None:
-                self.notifier4 = self.not_svc.Spawn (self.notifier_tuples[4][0], self.notifier_tuples[4][1])
-
-            self.notifier4.AddClient (object)
-
-        if len(self.notifier_tuples) > 5:
-            if self.notifier5 is None:
-                self.notifier5 = self.not_svc.Spawn (self.notifier_tuples[5][0], self.notifier_tuples[5][1])
-
-            self.notifier5.AddClient (object)
+            self.notifiers[i].AddClient(object)
 
     def cmd_NotifyRemoveClient(self, object):
-        if len(self.notifier_tuples) > 0:
-            if self.notifier0 is not None:
-                self.notifier0.RemoveClient (object)
-
-        if len(self.notifier_tuples) > 1:
-            if self.notifier1 is not None:
-                self.notifier1.RemoveClient (object)
-
-        if len(self.notifier_tuples) > 2:
-            if self.notifier2 is not None:
-                self.notifier2.RemoveClient (object)
-
-        if len(self.notifier_tuples) > 3:
-            if self.notifier3 is not None:
-                self.notifier3.RemoveClient (object)
-
-        if len(self.notifier_tuples) > 4:
-            if self.notifier4 is not None:
-                self.notifier4.RemoveClient (object)
-
-        if len(self.notifier_tuples) > 5:
-            if self.notifier5 is not None:
-                self.notifier5.RemoveClient (object)
+        for i, tup in enumerate(self.notifier_tuples):
+            if self.notifiers[i] is not None:
+                self.notifiers[i].RemoveClient(object)
 
     def cmd_Flags(self):
         return lx.symbol.fCMD_POSTCMD | lx.symbol.fCMD_MODEL | lx.symbol.fCMD_UNDO
@@ -260,8 +217,11 @@ class Commander(lxu.command.BasicCommand):
     def arg_UIValueHints(self, index):
         for n, argument in enumerate(self.commander_arguments()):
             if ARG_POPUP in argument:
-                if index == n and argument[ARG_POPUP]:
+                if index == n:
                     return PopupClass(argument[ARG_POPUP])
+            if ARG_FCL in argument:
+                if index == n:
+                    return FormCommandListClass(argument[ARG_FCL])
 
     def cmd_DialogInit(self):
         for n, argument in enumerate(self.commander_arguments()):
@@ -309,6 +269,12 @@ class Commander(lxu.command.BasicCommand):
         va = lx.object.ValueArray()
         va.set(vaQuery)
         for n, argument in enumerate(self.commander_arguments()):
-            if index == n:
-                va.AddString(self._commander_last_used[n])
+            if ARG_FLAGS in argument:
+                if 'query' not in argument[ARG_FLAGS]:
+                    continue
+                if ARG_FCL in argument:
+                    if argument[ARG_FCL]:
+                        continue
+                if index == n and self._commander_last_used[n]:
+                    va.AddString(str(self._commander_last_used[n]))
         return lx.result.OK
