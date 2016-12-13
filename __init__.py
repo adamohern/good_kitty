@@ -14,9 +14,8 @@ class CommandClass(tagger.Commander):
                     'label': 'Input String Here',
                     'datatype': 'string',
                     'value': "default string goes here",
-                    'popup': function_that_returns_list_of_possible_strings(),
                     'flags': [],
-                    'sPresetText': True
+                    'sPresetText': function_that_returns_list_of_possible_strings()
                 }, {
                     'name': 'greeting',
                     'datatype': 'string',
@@ -33,7 +32,7 @@ class CommandClass(tagger.Commander):
         lx.out("%s, %s" (greeting, myGreatString))
 """
 
-__version__ = "0.13"
+__version__ = "0.14"
 __author__ = "Adam"
 
 import lx, lxu, traceback
@@ -134,28 +133,25 @@ class Commander(lxu.command.BasicCommand):
         lxu.command.BasicCommand.__init__(self)
 
         for n, argument in enumerate(self.commander_arguments()):
-            if ARG_DATATYPE not in argument or ARG_NAME not in argument:
+            if not argument.get(ARG_DATATYPE):
+                continue
+            if not argument.get(ARG_NAME):
                 continue
 
             datatype = getattr(lx.symbol, 'sTYPE_' + argument[ARG_DATATYPE].upper())
             self.dyna_Add(argument[ARG_NAME], datatype)
+            self._commander_last_used.append(argument.get(ARG_VALUE))
 
-            if ARG_VALUE in argument:
-                self._commander_last_used.append(argument[ARG_VALUE])
-            else:
-                self._commander_last_used.append(None)
+            flags = []
+            for flag in argument.get(ARG_FLAGS, []):
+                flags.append(getattr(lx.symbol, 'fCMDARG_' + flag.upper()))
+            if flags:
+                self.basic_SetFlags(n, reduce(ior, flags))
 
-            if ARG_FLAGS in argument:
-                flags = []
-                for flag in argument[ARG_FLAGS]:
-                    flags.append(getattr(lx.symbol, 'fCMDARG_' + flag.upper()))
-                if flags:
-                    self.basic_SetFlags(n, reduce(ior, flags))
+        self.not_svc = lx.service.NotifySys()
 
         self.notifiers = []
         self.notifier_tuples = tuple([i for i in self.commander_notifiers()])
-        self.not_svc = lx.service.NotifySys()
-
         for i in self.notifier_tuples:
             self.notifiers.append(None)
 
@@ -163,21 +159,23 @@ class Commander(lxu.command.BasicCommand):
         return []
 
     def commander_arg_value(self, index):
-        if self.dyna_IsSet(index):
-            if self.commander_arguments()[index][ARG_DATATYPE].lower() in sTYPE_STRINGs:
-                return self.dyna_String(index)
+        if not self.dyna_IsSet(index):
+            return None
 
-            elif self.commander_arguments()[index][ARG_DATATYPE].lower() in sTYPE_STRING_vectors:
-                return [float(i) for i in self.dyna_String(index).split(" ")]
+        if self.commander_arguments()[index][ARG_DATATYPE].lower() in sTYPE_STRINGs:
+            return self.dyna_String(index)
 
-            elif self.commander_arguments()[index][ARG_DATATYPE].lower() in sTYPE_INTEGERs:
-                return self.dyna_Int(index)
+        elif self.commander_arguments()[index][ARG_DATATYPE].lower() in sTYPE_STRING_vectors:
+            return [float(i) for i in self.dyna_String(index).split(" ")]
 
-            elif self.commander_arguments()[index][ARG_DATATYPE].lower in sTYPE_FLOATs:
-                return self.dyna_Float(index)
+        elif self.commander_arguments()[index][ARG_DATATYPE].lower() in sTYPE_INTEGERs:
+            return self.dyna_Int(index)
 
-            elif self.commander_arguments()[index][ARG_DATATYPE].lower() in sTYPE_BOOLEANs:
-                return self.dyna_Bool(index)
+        elif self.commander_arguments()[index][ARG_DATATYPE].lower in sTYPE_FLOATs:
+            return self.dyna_Float(index)
+
+        elif self.commander_arguments()[index][ARG_DATATYPE].lower() in sTYPE_BOOLEANs:
+            return self.dyna_Bool(index)
 
         return None
 
@@ -203,44 +201,45 @@ class Commander(lxu.command.BasicCommand):
         return lx.symbol.fCMD_POSTCMD | lx.symbol.fCMD_MODEL | lx.symbol.fCMD_UNDO
 
     def arg_UIHints(self, index, hints):
-        for n, argument in enumerate(self.commander_arguments()):
-            if index == n:
-                if ARG_LABEL in argument:
-                    label = argument[ARG_LABEL]
-                else:
-                    label = argument[ARG_NAME]
+        args = self.commander_arguments()
+        if index < len(args):
+            label = args[index].get(ARG_LABEL)
+            if not label:
+                label = args[index].get(ARG_NAME)
+            hints.Label(label)
 
-                if ARG_sPresetText in argument:
-                    if argument[ARG_sPresetText]:
-                        hints.Class("sPresetText")
+            if args[index].get(ARG_sPresetText):
+                hints.Class("sPresetText")
 
     def arg_UIValueHints(self, index):
-        for n, argument in enumerate(self.commander_arguments()):
-            if ARG_POPUP in argument:
-                if index == n:
-                    return PopupClass(argument[ARG_POPUP])
-            if ARG_FCL in argument:
-                if index == n:
-                    return FormCommandListClass(argument[ARG_FCL])
+        args = self.commander_arguments()
+        if index < len(args):
+            if args[index].get(ARG_POPUP):
+                return PopupClass(args[index][ARG_POPUP])
+            elif args[index].get(ARG_sPresetText):
+                return PopupClass(args[index][ARG_sPresetText])
+            elif args[index].get(ARG_FCL):
+                return FormCommandListClass(args[index][ARG_FCL])
 
     def cmd_DialogInit(self):
         for n, argument in enumerate(self.commander_arguments()):
-            if self._commander_last_used[n] != None and ARG_DATATYPE in argument:
+            if self._commander_last_used[n] == None:
+                continue
 
-                if argument[ARG_DATATYPE].lower() in sTYPE_STRINGs:
-                    self.attr_SetString(n, str(self._commander_last_used[n]))
+            if argument.get(ARG_DATATYPE, '').lower() in sTYPE_STRINGs:
+                self.attr_SetString(n, str(self._commander_last_used[n]))
 
-                elif argument[ARG_DATATYPE].lower() in sTYPE_STRING_vectors:
-                    self.attr_SetString(n, str(self._commander_last_used[n]))
+            elif argument.get(ARG_DATATYPE, '').lower() in sTYPE_STRING_vectors:
+                self.attr_SetString(n, str(self._commander_last_used[n]))
 
-                elif argument[ARG_DATATYPE].lower() in sTYPE_INTEGERs:
-                    self.attr_SetInt(n, int(self._commander_last_used[n]))
+            elif argument.get(ARG_DATATYPE, '').lower() in sTYPE_INTEGERs:
+                self.attr_SetInt(n, int(self._commander_last_used[n]))
 
-                elif argument[ARG_DATATYPE].lower() in sTYPE_BOOLEANs:
-                    self.attr_SetInt(n, int(self._commander_last_used[n]))
+            elif argument.get(ARG_DATATYPE, '').lower() in sTYPE_BOOLEANs:
+                self.attr_SetInt(n, int(self._commander_last_used[n]))
 
-                elif argument[ARG_DATATYPE].lower in sTYPE_FLOATs:
-                    self.attr_SetFlt(n, float(self._commander_last_used[n]))
+            elif argument.get(ARG_DATATYPE, '').lower in sTYPE_FLOATs:
+                self.attr_SetFlt(n, float(self._commander_last_used[n]))
 
     @classmethod
     def set_commander_last_used(cls, key, value):
@@ -254,27 +253,27 @@ class Commander(lxu.command.BasicCommand):
         pass
 
     def basic_Execute(self, msg, flags):
+        for n, argument in enumerate(self.commander_arguments()):
+            if self.dyna_IsSet(n):
+                self.set_commander_last_used(n, self.commander_arg_value(n))
+
         try:
-            for n, argument in enumerate(self.commander_arguments()):
-
-                if self.dyna_IsSet(n):
-                    self.set_commander_last_used(n, self.commander_arg_value(n))
-
             self.commander_execute(msg, flags)
-
         except:
             lx.out(traceback.format_exc())
 
     def cmd_Query(self,index,vaQuery):
         va = lx.object.ValueArray()
         va.set(vaQuery)
-        for n, argument in enumerate(self.commander_arguments()):
-            if ARG_FLAGS in argument:
-                if 'query' not in argument[ARG_FLAGS]:
-                    continue
-                if ARG_FCL in argument:
-                    if argument[ARG_FCL]:
-                        continue
-                if index == n and self._commander_last_used[n]:
-                    va.AddString(str(self._commander_last_used[n]))
+
+        args = self.commander_arguments()
+
+        if index < len(args):
+            is_query = 'query' in args[index].get(ARG_FLAGS, [])
+            is_not_fcl = False if args[index].get(ARG_FCL) else True
+            has_last_used = self._commander_last_used[index]
+
+            if is_query and is_not_fcl and has_last_used:
+                va.AddString(str(self._commander_last_used[index]))
+
         return lx.result.OK

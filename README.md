@@ -71,9 +71,8 @@ class CommandClass(commander.Commander):
         'name': 'dish2',
         'datatype': 'string',
         'label': 'Second Dish',
-        'popup': ['eggs', 'kale'],
         'value': 'eggs',
-        'sPresetText': True
+        'sPresetText': ['eggs', 'kale']
       }
     ]
 
@@ -148,7 +147,7 @@ class CommandClass(commander.Commander):
 lx.bless(CommandClass, CMD_NAME)
 ```
 
-The above example lists the buttons `'render'`, `'render'`, and `'render'` all in a row in your form. Money. (If you've ever done this before manually... you just peed your pants.)
+The above example lists the buttons `'render'`, `'render'`, and `'render'` all in a row in your form. Money. (If you've ever done this before manually, you are very happy right now.)
 
 Okay, I'm getting silly now.
 
