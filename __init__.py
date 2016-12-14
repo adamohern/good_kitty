@@ -32,7 +32,7 @@ class CommandClass(tagger.Commander):
         lx.out("%s, %s" (greeting, myGreatString))
 """
 
-__version__ = "0.18"
+__version__ = "0.19"
 __author__ = "Adam"
 
 import lx, lxu, traceback
@@ -164,7 +164,7 @@ class PolysByIslandClass (Visitor):
         self.islands.append (inner)
 
 class MeshEditorClass():
-    def __init__(self, args, mesh_edit_flags):
+    def __init__(self, args = None, mesh_edit_flags = []):
         self.args = args
         self.mesh_edit_flags = mesh_edit_flags
         self.polygon_accessor = None
@@ -174,13 +174,29 @@ class MeshEditorClass():
         self.list_of_poly_islands = None
 
     def mesh_edit_action(self):
-        pass
+        return None
+
+    def mesh_read_action(self):
+        return None
 
     def do_mesh_edit(self):
+        return self.mesh_edit()
+
+    def do_mesh_read(self):
+        return self.mesh_edit(True)
+
+    def mesh_edit(self, read_only = False):
         """Adapted from James O'Hare's excellent code: https://gist.github.com/Farfarer/31148a78f392a831239d9b018b90330c"""
 
+        if read_only:
+            scan_allocate = lx.symbol.f_LAYERSCAN_ACTIVE
+        if not read_only:
+            scan_allocate = lx.symbol.f_LAYERSCAN_EDIT
+
+        return_value = None
+
         layer_svc = lx.service.Layer ()
-        layer_scan = lx.object.LayerScan (layer_svc.ScanAllocate (lx.symbol.f_LAYERSCAN_EDIT))
+        layer_scan = lx.object.LayerScan (layer_svc.ScanAllocate (scan_allocate))
         if not layer_scan.test ():
             return
 
@@ -189,7 +205,11 @@ class MeshEditorClass():
         mark_mode_unchecked = mesh_svc.ModeCompose (None, 'user0')
 
         for n in xrange (layer_scan.Count ()):
-            mesh = lx.object.Mesh (layer_scan.MeshEdit(n))
+            if read_only:
+                mesh = lx.object.Mesh (layer_scan.MeshBase(n))
+            if not read_only:
+                mesh = lx.object.Mesh (layer_scan.MeshEdit(n))
+
             if not mesh.test ():
                 continue
 
@@ -221,9 +241,12 @@ class MeshEditorClass():
 
             self.list_of_poly_islands = visIslands.islands
 
-            return_value = self.mesh_edit_action()
+            if read_only:
+                return_value = self.mesh_read_action()
+            if not read_only:
+                return_value = self.mesh_edit_action()
 
-            if self.mesh_edit_flags:
+            if self.mesh_edit_flags and not read_only:
                 layer_scan.SetMeshChange (n, reduce(ior, self.mesh_edit_flags))
 
         layer_scan.Apply ()
