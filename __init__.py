@@ -32,7 +32,7 @@ class CommandClass(tagger.Commander):
         lx.out("%s, %s" (greeting, myGreatString))
 """
 
-__version__ = "0.16"
+__version__ = "0.17"
 __author__ = "Adam"
 
 import lx, lxu, traceback
@@ -162,6 +162,74 @@ class PolysByIslandClass (Visitor):
                     if vert_polygon_ID not in inner:
                         outer.add (vert_polygon_ID)
         self.islands.append (inner)
+
+class MeshEditorClass():
+    def __init__(self, args, mesh_edit_flags):
+        self.args = args
+        self.mesh_edit_flags = mesh_edit_flags
+        self.polygon_accessor = None
+        self.edge_accessor = None
+        self.meshmap_accessor = None
+        self.point_accessor = None
+        self.list_of_poly_islands = None
+
+    def mesh_edit_action(self):
+        pass
+
+    def mesh_edit(self):
+        """Adapted from James O'Hare's excellent code: https://gist.github.com/Farfarer/31148a78f392a831239d9b018b90330c"""
+
+        layer_svc = lx.service.Layer ()
+        layer_scan = lx.object.LayerScan (layer_svc.ScanAllocate (lx.symbol.f_LAYERSCAN_EDIT))
+        if not layer_scan.test ():
+            return
+
+        mesh_svc = lx.service.Mesh ()
+        mark_mode_checked = mesh_svc.ModeCompose ('user0', None)
+        mark_mode_unchecked = mesh_svc.ModeCompose (None, 'user0')
+
+        for n in xrange (layer_scan.Count ()):
+            mesh = lx.object.Mesh (layer_scan.MeshEdit(n))
+            if not mesh.test ():
+                continue
+
+            polygon_count = mesh.PolygonCount ()
+            if polygon_count == 0:
+                continue
+
+            self.polygon_accessor = lx.object.Polygon (mesh.PolygonAccessor ())
+            if not self.polygon_accessor.test ():
+                continue
+
+            self.edge_accessor = lx.object.Edge (mesh.EdgeAccessor ())
+            if not self.edge_accessor.test ():
+                continue
+
+            self.point_accessor = lx.object.Point (mesh.PointAccessor ())
+            if not self.point_accessor.test ():
+                continue
+
+            self.meshmap_accessor = lx.object.MeshMap (mesh.MeshMapAccessor ())
+            if not self.meshmap_accessor.test ():
+                continue
+
+            visClear = SetMarksClass (self.polygon_accessor, mark_mode_unchecked)
+            self.polygon_accessor.Enumerate (mark_mode_checked, visClear, 0)
+
+            visIslands = PolysByIslandClass (self.polygon_accessor, self.point_accessor, mark_mode_checked)
+            self.polygon_accessor.Enumerate (mark_mode_unchecked, visIslands, 0)
+
+            self.list_of_poly_islands = visIslands.islands
+
+            return_value = self.mesh_edit_action()
+
+            if self.mesh_edit_flags:
+                layer_scan.SetMeshChange (n, reduce(ior, self.mesh_edit_flags))
+
+        layer_scan.Apply ()
+
+        return return_value
+
 
 class Commander(lxu.command.BasicCommand):
     _commander_default_values = []
@@ -297,46 +365,6 @@ class Commander(lxu.command.BasicCommand):
             self.commander_execute(msg, flags)
         except:
             lx.out(traceback.format_exc())
-
-    def commander_mesh_edit_action(self, polygon_accessor, point_accessor, list_of_poly_islands):
-        pass
-
-    def commander_mesh_edit(self):
-        """Adapted from James O'Hare's excellent code: https://gist.github.com/Farfarer/31148a78f392a831239d9b018b90330c"""
-
-        layer_svc = lx.service.Layer ()
-        layer_scan = lx.object.LayerScan (layer_svc.ScanAllocate (lx.symbol.f_LAYERSCAN_EDIT_POLYS))
-        if not layer_scan.test ():
-            return
-
-        mesh_svc = lx.service.Mesh ()
-        mark_mode_checked = mesh_svc.ModeCompose ('user0', None)
-        mark_mode_unchecked = mesh_svc.ModeCompose (None, 'user0')
-
-        for n in xrange (layer_scan.Count ()):
-            mesh = lx.object.Mesh (layer_scan.MeshEdit(n))
-            if not mesh.test ():
-                continue
-
-            polygon_count = mesh.PolygonCount ()
-            if polygon_count == 0:
-                continue
-
-            polygon = lx.object.Polygon (mesh.PolygonAccessor ())
-            point = lx.object.Point (mesh.PointAccessor ())
-            if not polygon.test () or not point.test ():
-                continue
-
-            visClear = SetMarksClass (polygon, mark_mode_unchecked)
-            polygon.Enumerate (mark_mode_checked, visClear, 0)
-
-            visIslands = PolysByIslandClass (polygon, point, mark_mode_checked)
-            polygon.Enumerate (mark_mode_unchecked, visIslands, 0)
-
-            self.commander_mesh_edit_action(polygon, point, visIslands.islands)
-
-            layer_scan.SetMeshChange (n, lx.symbol.f_MESHEDIT_POL_TAGS)
-        layer_scan.Apply ()
 
     def cmd_Query(self,index,vaQuery):
         va = lx.object.ValueArray()
