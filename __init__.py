@@ -32,7 +32,7 @@ class CommandClass(tagger.Commander):
         lx.out("%s, %s" (greeting, myGreatString))
 """
 
-__version__ = "0.17"
+__version__ = "0.18"
 __author__ = "Adam"
 
 import lx, lxu, traceback
@@ -176,7 +176,7 @@ class MeshEditorClass():
     def mesh_edit_action(self):
         pass
 
-    def mesh_edit(self):
+    def do_mesh_edit(self):
         """Adapted from James O'Hare's excellent code: https://gist.github.com/Farfarer/31148a78f392a831239d9b018b90330c"""
 
         layer_svc = lx.service.Layer ()
