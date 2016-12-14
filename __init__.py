@@ -261,7 +261,6 @@ class Commander(lxu.command.BasicCommand):
     def cmd_DialogInit(self):
         for n, argument in enumerate(self.commander_arguments()):
             if self.dyna_IsSet(n):
-                lx.out("arg %s already set" % n)
                 continue
 
             if self._commander_default_values[n] == None:
