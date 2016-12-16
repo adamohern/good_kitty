@@ -32,7 +32,7 @@ class CommandClass(tagger.Commander):
         lx.out("%s, %s" (greeting, myGreatString))
 """
 
-__version__ = "0.19"
+__version__ = "0.2"
 __author__ = "Adam"
 
 import lx, lxu, traceback
@@ -275,12 +275,17 @@ class Commander(lxu.command.BasicCommand):
         lxu.command.BasicCommand.__init__(self)
 
         for n, argument in enumerate(self.commander_arguments()):
+
             if not argument.get(ARG_DATATYPE):
-                continue
+                return lx.symbol.e_FAILED
+
             if not argument.get(ARG_NAME):
-                continue
+                return lx.symbol.e_FAILED
 
             datatype = getattr(lx.symbol, 'sTYPE_' + argument[ARG_DATATYPE].upper())
+            if not datatype:
+                return lx.symbol.e_FAILED
+
             self.dyna_Add(argument[ARG_NAME], datatype)
             self._commander_default_values.append(argument.get(ARG_VALUE))
 
@@ -300,9 +305,12 @@ class Commander(lxu.command.BasicCommand):
     def commander_arguments(self):
         return []
 
-    def commander_arg_value(self, index):
+    def commander_notifiers(self):
+        return []
+
+    def commander_arg_value(self, index, default=None):
         if not self.dyna_IsSet(index):
-            return None
+            return default
 
         if self.commander_arguments()[index][ARG_DATATYPE].lower() in sTYPE_STRINGs:
             return self.dyna_String(index)
@@ -319,13 +327,7 @@ class Commander(lxu.command.BasicCommand):
         elif self.commander_arguments()[index][ARG_DATATYPE].lower() in sTYPE_BOOLEANs:
             return self.dyna_Bool(index)
 
-        return None
-
-    def commander_args_count(self):
-        return len(self._arguments)
-
-    def commander_notifiers(self):
-        return []
+        return default
 
     def cmd_NotifyAddClient(self, argument, object):
         for i, tup in enumerate(self.notifier_tuples):
@@ -350,54 +352,53 @@ class Commander(lxu.command.BasicCommand):
                 label = args[index].get(ARG_NAME)
             hints.Label(label)
 
-            if args[index].get(ARG_sPresetText):
+            if ARG_sPresetText in args[index]:
                 hints.Class("sPresetText")
 
     def arg_UIValueHints(self, index):
         args = self.commander_arguments()
         if index < len(args):
-            if args[index].get(ARG_POPUP, None) is not None:
+            if args[index].get(ARG_POPUP) is not None:
                 return PopupClass(args[index].get(ARG_POPUP, []))
-            elif args[index].get(ARG_sPresetText, None) is not None:
+            elif args[index].get(ARG_sPresetText) is not None:
                 return PopupClass(args[index].get(ARG_sPresetText, []))
-            elif args[index].get(ARG_FCL, None) is not None:
+            elif args[index].get(ARG_FCL) is not None:
                 return FormCommandListClass(args[index].get(ARG_FCL, []))
 
     def cmd_DialogInit(self):
         for n, argument in enumerate(self.commander_arguments()):
-            if self.dyna_IsSet(n):
+
+            if self.dyna_IsSet(n) and self.dyna_String(n):
                 continue
 
-            if self._commander_default_values[n] == None:
+            if self.commander_arguments()[n].get(ARG_VALUE) == None:
                 continue
 
-            if argument.get(ARG_DATATYPE, '').lower() in sTYPE_STRINGs:
-                self.attr_SetString(n, str(self._commander_default_values[n]))
+            datatype = argument.get(ARG_DATATYPE, '').lower()
+            default_value = self._commander_default_values[n]
 
-            elif argument.get(ARG_DATATYPE, '').lower() in sTYPE_STRING_vectors:
-                self.attr_SetString(n, str(self._commander_default_values[n]))
+            if datatype in sTYPE_STRINGs:
+                self.attr_SetString(n, str(default_value))
 
-            elif argument.get(ARG_DATATYPE, '').lower() in sTYPE_INTEGERs:
-                self.attr_SetInt(n, int(self._commander_default_values[n]))
+            elif datatype in sTYPE_STRING_vectors:
+                self.attr_SetString(n, str(default_value))
 
-            elif argument.get(ARG_DATATYPE, '').lower() in sTYPE_BOOLEANs:
-                self.attr_SetInt(n, int(self._commander_default_values[n]))
+            elif datatype in sTYPE_INTEGERs:
+                self.attr_SetInt(n, int(default_value))
 
-            elif argument.get(ARG_DATATYPE, '').lower in sTYPE_FLOATs:
-                self.attr_SetFlt(n, float(self._commander_default_values[n]))
+            elif datatype in sTYPE_BOOLEANs:
+                self.attr_SetInt(n, int(default_value))
 
-    @classmethod
-    def set_commander_default_values(cls, key, value):
-        cls._commander_default_values[key] = value
-
-    @classmethod
-    def set_argument(cls, key, value):
-        cls._arguments[key] = value
+            elif datatype in sTYPE_FLOATs:
+                self.attr_SetFlt(n, float(default_value))
 
     def commander_execute(self, msg, flags):
         pass
 
     def basic_Execute(self, msg, flags):
+        for n, argument in enumerate(self.commander_arguments()):
+            self._commander_default_values[n] = self.commander_arg_value(n)
+
         try:
             self.commander_execute(msg, flags)
         except:
@@ -412,9 +413,9 @@ class Commander(lxu.command.BasicCommand):
         if index < len(args):
             is_query = 'query' in args[index].get(ARG_FLAGS, [])
             is_not_fcl = False if args[index].get(ARG_FCL) else True
-            has_last_used = self._commander_default_values[index]
+            has_recent_value = self.commander_arg_value(index)
 
-            if is_query and is_not_fcl and has_last_used:
-                va.AddString(str(self._commander_default_values[index]))
+            if is_query and is_not_fcl and has_recent_value:
+                va.AddString(str(self.commander_arg_value(index)))
 
         return lx.result.OK
