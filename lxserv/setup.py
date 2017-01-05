@@ -35,12 +35,12 @@ class CommandClass(commander.CommanderClass):
                 'name': 'pretty',
                 'datatype': 'string',
                 'label': 'Pretty Name',
-                'default': 'Good Kitty'
+                'default': 'My Great Kit'
             }, {
                 'name': 'internal',
                 'datatype': 'string',
                 'label': 'Internal Name',
-                'default': 'good_kitty'
+                'default': 'my_great_kit'
             }
         ]
 
@@ -64,7 +64,12 @@ class CommandClass(commander.CommanderClass):
         replace_in_files(new_kitpath, 'good_kitty', internal_name, (".cfg", ".py", ".html", ".css"))
         replace_in_files(new_kitpath, 'Good Kitty', pretty_name, (".cfg", ".py", ".html", ".css"))
 
-        # delete setup.py
+        # delete unnecessary stuff
+        for root, dirs, files in os.walk("/mydir"):
+            for f in files:
+                if f.lower().endswith(".pyc"):
+                     os.remove(f)
+
         os.remove(os.path.join(new_kitpath, 'lxserv', 'setup.py'))
         os.remove(os.path.join(new_kitpath, 'README.md'))
         os.remove(os.path.join(new_kitpath, '.gitignore'))
@@ -74,7 +79,7 @@ class CommandClass(commander.CommanderClass):
         lx.eval('file.open {%s}' % new_kitpath)
 
         # tell the user what to do next on restart
-        lx.eval('user.value kitty_kit_new_name {%s}' % internal_name)
+        lx.eval('user.value kitty_kit_new_name {kit_%s}' % internal_name)
         lx.eval('user.value kitty_kit_initialize 1')
 
         # alert with help info
