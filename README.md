@@ -17,9 +17,12 @@ To implement a new kit with good_kitty, I recommend the following steps:
 
 4. _Optional:_ If possible, I highly recommend using a text editor that can find and replace for an entire project at once ([atom.io](http://atom.io) and [brackets.io](http://brackets.io) are both free, lightweight, and excellent). If you have the capability, I recommend doing a find/replace for `'good_kitty'` in the entire project, replacing it with your own kit's name. This way all of the icon resources and help docs will have your own kit's name in them by default.
 5. Add your own scripts, configs, and icons as needed. Feel free to delete example files once you understand them.
-6. Modify `Configs/forms_modes_tail.cfg` to include your own scripts and commands.
+6. Most MODO plugins install themselves into the "Modes Tail." To add yours, modify `Configs/forms_modes_tail.cfg` to include your own scripts and commands. If there are more than two or three, you might want to consider including a popover form.
 
-As you build your command
+Building kits in MODO can be a complex process, but I hope this makes things simpler. Enjoy.
+
+Adam
+adam@mechanicalcolor.com
 
 # commander #
 ### `lxu.command.BasicCommand` wrapper for typical MODO commands ###
