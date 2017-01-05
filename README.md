@@ -3,12 +3,12 @@
 
 Commander is a clean, simple wrapper for writing MODO commands with common UI elements like popup lists and string fields with popup hints (i.e. ``'sPresetText'``). The wrapper reduces clutter, redundant code, and common mistakes.
 
-To implement a command, just include the commander module and, when creating your command class, extend `commander.Commander` instead of `lxu.command.BasicCommand` as you normally would.
+To implement a command, just include the commander module and, when creating your command class, extend `commander.CommanderClass` instead of `lxu.command.BasicCommand` as you normally would.
 
 ```python
 import commander
 
-class CommandClass(commander.Commander):
+class CommandClass(commander.CommanderClass):
   _commander_last_used = []
 
   def commander_execute(self, msg, flags):
@@ -26,7 +26,7 @@ But it really gets nice when you want to ask the user for something.
 ```python
 import commander
 
-class CommandClass(commander.Commander):
+class CommandClass(commander.CommanderClass):
   _commander_last_used = []
 
   def commander_arguments():
@@ -56,7 +56,7 @@ Usually you want to include fancy stuff like popup menus for limiting your user'
 ```python
 import commander
 
-class CommandClass(commander.Commander):
+class CommandClass(commander.CommanderClass):
   _commander_last_used = []
 
   def commander_arguments():
@@ -65,14 +65,16 @@ class CommandClass(commander.Commander):
         'name': 'dish1',
         'datatype': 'string',
         'label': 'First Dish',
-        'popup': ['bacon', 'quinoa'],
-        'value': 'bacon'
+        'default': 'bacon',
+        'values_list_type': 'popup',
+        'values_list': ['bacon', 'quinoa']
       }, {
         'name': 'dish2',
         'datatype': 'string',
         'label': 'Second Dish',
-        'value': 'eggs',
-        'sPresetText': ['eggs', 'kale']
+        'default': 'eggs',
+        'values_list_type': 'sPresetText'
+        'values_list': ['eggs', 'kale']
       }
     ]
 
@@ -84,6 +86,8 @@ class CommandClass(commander.Commander):
 
 lx.bless(CommandClass, 'breakfast')
 ```
+
+There are two kinds of popup arguments in commander: `'popup'` and `'sPresetText'`. The former is a straightforward popup menu with fixed values. The latter is a popup list with an editable text field. An argument may have one or the other of these fields, but not both.
 
 The only required fields for each argument are `'name'` and `'datatype'`. `'name'` is an arbitrary alphanumeric string. `'datatype'` can be any of the following:
 
@@ -111,6 +115,25 @@ The only required fields for each argument are `'name'` and `'datatype'`. `'name
 - `'uvcoord'`
 - `'vertmapname'`
 
+Arguments may also have a list of flags for special functionality, most commonly `'query'`, `'optional'`, and sometimes `'hidden'`. Valid flags include:
+
+- `'can_query_when_disabled'`
+- `'changed'`
+- `'dialog_always_sets'`
+- `'dialog_divider_after_arg'`
+- `'dynamichints'`
+- `'dynamic_defaults'`
+- `'hidden'`
+- `'init_only'`
+- `'optional'`
+- `'query'`
+- `'readonly'`
+- `'reqforvariable'`
+- `'reqforvar_set'`
+- `'state_only'`
+- `'value_set'`
+- `'variable'`
+
 Include any of the above datatype strings, and `commander` will handle the rest, insuring that you always grab the correct python datatype for a given argument type. (No more accidentally trying to grab an sTYPE_STRING from an integer field or vise-verse.)
 
 And yes, `commander` will even parse your vectors so that a `'color'` field returns the list `[0.0, 0.0, 0.0]` instead of the raw string `"0.0 0.0 0.0"`, saving you that trouble.
@@ -126,10 +149,10 @@ def commander_notifiers(self):
 
 The above listens for changes to polygon and/or item selection and updates form elements accordingly. If you're familiar with notifiers in MODO, you'll know how maniacally I laugh every time I implement this.
 
-You can even build Form Command Lists (a list of programmatically-generated buttons in a form) by including an `'fcl'` parameter containing the list of commands to display.
+You can even build Form Command Lists (a list of programmatically-generated buttons in a form) by setting the `'values_list_type'` to `'fcl'`. Note that the argument must have the `'query'` flag, and each value in `'values_list'` list must be a valid MODO command.
 
 ```python
-class CommandClass(commander.Commander):
+class CommandClass(commander.CommanderClass):
     _commander_last_used = []
 
     def commander_arguments(self):
@@ -138,8 +161,9 @@ class CommandClass(commander.Commander):
                     'name': 'myGreatQuery',
                     'label': 'Query This',
                     'datatype': 'integer',
-                    'value': '',
-                    'fcl': ['render', 'render', 'render'],
+                    'default': '',
+                    'values_list_type': 'fcl'
+                    'values_list': ['render', 'render', 'render'],
                     'flags': ['query'],
                 }
             ]
