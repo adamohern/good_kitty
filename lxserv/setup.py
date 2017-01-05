@@ -1,18 +1,19 @@
-import lx, modo, commander, os
+import lx, modo, commander, os, shutil
 
 def replace_in_files(directory, find, replace, list_of_extensions):
     for path, dirs, files in os.walk(os.path.abspath(directory)):
-        if filename.endswith(list_of_extensions):
-            filepath = os.path.join(path, filename)
-            with open(filepath) as f:
-                s = f.read()
-            s = s.replace(find, replace)
-            with open(filepath, "w") as f:
-                f.write(s)
+        for filename in files:
+            if filename.lower().endswith(list_of_extensions):
+                filepath = os.path.join(path, filename)
+                with open(filepath) as f:
+                    s = f.read()
+                s = s.replace(find, replace)
+                with open(filepath, "w") as f:
+                    f.write(s)
 
 def replace_in_filenames(directory, find, replace):
     paths_list = (os.path.join(root, filename)
-        for root, _, filenames in os.walk(kitpath)
+        for root, _, filenames in os.walk(directory)
         for filename in filenames
     )
 
@@ -60,16 +61,21 @@ class CommandClass(commander.CommanderClass):
         replace_in_filenames(new_kitpath, 'good_kitty', internal_name)
 
         # find and replace in text files
-        replace_in_files(new_kitpath, 'good_kitty', internal_name, (".cfg", ".py", ".md", ".html", ".css"))
+        replace_in_files(new_kitpath, 'good_kitty', internal_name, (".cfg", ".py", ".html", ".css"))
+        replace_in_files(new_kitpath, 'Good Kitty', pretty_name, (".cfg", ".py", ".html", ".css"))
 
         # delete setup.py
         os.remove(os.path.join(new_kitpath, 'lxserv', 'setup.py'))
-
-        # delete startup.cfg
-        os.remove(os.path.join(new_kitpath, 'Configs', 'startup.cfg'))
+        os.remove(os.path.join(new_kitpath, 'README.md'))
+        os.remove(os.path.join(new_kitpath, '.gitignore'))
+        shutil.rmtree(os.path.join(new_kitpath, '.git'), True)
 
         # open folder in file browser
         lx.eval('file.open {%s}' % new_kitpath)
+
+        # tell the user what to do next on restart
+        lx.eval('user.value kitty_kit_new_name {%s}' % internal_name)
+        lx.eval('user.value kitty_kit_initialize 1')
 
         # alert with help info
         modo.dialogs.alert("Restarting", "good_kitty has been customized. Restarting MODO.")
