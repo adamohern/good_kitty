@@ -33,4 +33,4 @@ class CommandClass(commander.CommanderClass):
         modo.dialogs.alert("breakfast", ' and '.join([dish1, dish2]))
 
 
-lx.bless(CommandClass, 'commander.breakfast')
+lx.bless(CommandClass, 'good_kitty.breakfast')

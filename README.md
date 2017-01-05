@@ -16,6 +16,10 @@ This should get you to a functioning kit. Peruse the content of the kit for exam
 Adam
 adam@mechanicalcolor.com
 
+# Adding Scripts and Configs #
+
+Any scripts and configs included in the Scripts or Configs folders will be imported into MODO automatically. Just drop `'myGreatScript.py'` into the Scripts folder and run `'@myGreatscript.py'` in the MODO command line. Easy peasy.
+
 # commander #
 ### `lxu.command.BasicCommand` wrapper for typical MODO commands ###
 
@@ -27,7 +31,7 @@ To implement a command, just include the commander module and, when creating you
 import commander
 
 class CommandClass(commander.CommanderClass):
-  _commander_last_used = []
+  _commander_default_values = []
 
   def commander_execute(self, msg, flags):
     lx.out(' and '.join(['bacon', 'eggs']))
@@ -37,7 +41,7 @@ lx.bless(CommandClass, 'breakfast')
 
 Hooray! You now have a first-class MODO command. Type `breakfast` into the MODO command line, and read your delicious result.
 
-The only slightly weird bit is that you have to include the `_commander_last_used` definition in your class, otherwise things will go sideways as soon as you use the class more than once. Just trust me on that one.
+The only slightly weird bit is that you have to include the `_commander_default_values` definition in your class, otherwise things will go sideways as soon as you use the class more than once. Just trust me on that one.
 
 But it really gets nice when you want to ask the user for something.
 
@@ -45,9 +49,9 @@ But it really gets nice when you want to ask the user for something.
 import commander
 
 class CommandClass(commander.CommanderClass):
-  _commander_last_used = []
+  _commander_default_values = []
 
-  def commander_arguments():
+  def commander_arguments(self):
     return [
       {
         'name': 'dish1',
@@ -75,9 +79,9 @@ Usually you want to include fancy stuff like popup menus for limiting your user'
 import commander
 
 class CommandClass(commander.CommanderClass):
-  _commander_last_used = []
+  _commander_default_values = []
 
-  def commander_arguments():
+  def commander_arguments(self):
     return [
       {
         'name': 'dish1',
@@ -171,7 +175,7 @@ You can even build Form Command Lists (a list of programmatically-generated butt
 
 ```python
 class CommandClass(commander.CommanderClass):
-    _commander_last_used = []
+    _commander_default_values = []
 
     def commander_arguments(self):
         return [
@@ -185,6 +189,9 @@ class CommandClass(commander.CommanderClass):
                     'flags': ['query'],
                 }
             ]
+
+    def commander_notifiers(self):
+        return [("select.event", "polygon +ldt"),("select.event", "item +ldt")]
 
 lx.bless(CommandClass, CMD_NAME)
 ```
