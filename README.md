@@ -9,17 +9,9 @@ To implement a new kit with good_kitty, I recommend the following steps:
 
 1. Download and unzip good_kitty to a folder the MODO kits directory
 2. Rename the parent folder to your kit's new name (letters, numbers, and underscores only)
-3. Open index.cfg and change the following line to use your kit name, your (arbitrary) version number, and your minimum MODO version requirement:
+3. Find and replace the string `'good_kitty'` with your own kit's name throughout the entire kit. A decent text editor can do this all in a single operation. I highly recommend using a text editor that can find and replace for an entire project at once ([atom.io](http://atom.io) and [brackets.io](http://brackets.io) are both free, lightweight, and excellent).
 
-  ```xml
-  <configuration kit="good_kitty" version="0.0.0" and="rel]=902">
-  ```
-
-4. Find and replace the string `'good_kitty'` with your own kit's name throughout the entire kit. A decent text editor can do this all in a single operation. I highly recommend using a text editor that can find and replace for an entire project at once ([atom.io](http://atom.io) and [brackets.io](http://brackets.io) are both free, lightweight, and excellent).
-5. Add your own scripts, configs, and icons as needed. Feel free to delete example files once you understand them.
-6. Most MODO plugins install themselves into the "Modes Tail." To add yours, modify `Configs/forms_modes_tail.cfg` to include your own scripts and commands. If there are more than two or three, you might want to consider including a popover form.
-
-Building kits in MODO can be a complex process, but I hope this makes things simpler. Enjoy.
+This should get you to a functioning kit. Peruse the content of the kit for examples of scripts, commands, preferences, command help, icons, html documentation, and more. Once you understand what each file does, feel free to use it as a starting point for your own, or just delete the ones you don't need.
 
 Adam
 adam@mechanicalcolor.com
