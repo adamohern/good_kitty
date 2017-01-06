@@ -18,11 +18,8 @@ This should get you to a functioning kit. Peruse the content of the kit for exam
 Adam
 adam@mechanicalcolor.com
 
-# Adding Scripts and Configs #
 
-Any scripts and configs included in the Scripts or Configs folders will be imported into MODO automatically. Just drop `'myGreatScript.py'` into the Scripts folder and run `'@myGreatscript.py'` in the MODO command line. Easy peasy.
-
-# commander #
+## commander ##
 ### `lxu.command.BasicCommand` wrapper for typical MODO commands ###
 
 Commander is a clean, simple wrapper for writing MODO commands with common UI elements like popup lists and string fields with popup hints (i.e. ``'sPresetText'``). The wrapper reduces clutter, redundant code, and common mistakes.
