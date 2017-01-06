@@ -65,7 +65,7 @@ class CommandClass(commander.CommanderClass):
         replace_in_files(new_kitpath, 'Good Kitty', pretty_name, (".cfg", ".py", ".html", ".css"))
 
         # delete unnecessary stuff
-        for root, dirs, files in os.walk("/mydir"):
+        for root, dirs, files in os.walk(new_kitpath):
             for f in files:
                 if f.lower().endswith(".pyc"):
                      os.remove(f)
