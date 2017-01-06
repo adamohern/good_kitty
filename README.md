@@ -1,4 +1,4 @@
-# good_kitty #
+# Good Kitty #
 ### Making kits for MODO has never been easier. ###
 
 good_kitty is a template for building well-structured kits in MODO, complete with icons, commands, configs, and scripts.
