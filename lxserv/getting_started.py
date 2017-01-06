@@ -7,6 +7,10 @@ class CommandClass(commander.CommanderClass):
         kitname = lx.eval('user.value kitty_kit_new_name ?')
         new_kitpath = lx.eval("query platformservice alias ? {%s:}" % kitname)
 
+        for root, dirs, files in os.walk("/mydir"):
+            for f in files:
+                if f.lower().endswith(".pyc"):
+                     os.remove(f)
         os.remove(os.path.join(new_kitpath, 'Configs', 'startup.cfg'))
         os.remove(os.path.join(new_kitpath, 'lxserv', 'getting_started.py'))
         os.remove(os.path.join(new_kitpath, 'lxserv', 'startup.py'))
