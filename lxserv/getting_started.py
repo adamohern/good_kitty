@@ -1,4 +1,4 @@
-import lx, modo, commander, os
+import lx, modo, commander, os, glob
 
 class CommandClass(commander.CommanderClass):
     _commander_default_values = []
@@ -7,10 +7,11 @@ class CommandClass(commander.CommanderClass):
         kitname = lx.eval('user.value kitty_kit_new_name ?')
         new_kitpath = lx.eval("query platformservice alias ? {%s:}" % kitname)
 
-        for root, dirs, files in os.walk(new_kitpath):
-            for f in files:
-                if f.lower().endswith(".pyc"):
-                     os.remove(f)
+        for f in glob.glob(new_kitpath + "/*/*.pyc"):
+            try:
+                os.remove(f)
+            except:
+                continue
         os.remove(os.path.join(new_kitpath, 'Configs', 'startup.cfg'))
         os.remove(os.path.join(new_kitpath, 'lxserv', 'getting_started.py'))
         os.remove(os.path.join(new_kitpath, 'lxserv', 'startup.py'))

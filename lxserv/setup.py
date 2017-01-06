@@ -1,4 +1,4 @@
-import lx, modo, commander, os, shutil
+import lx, modo, commander, os, shutil, glob
 
 def replace_in_files(directory, find, replace, list_of_extensions):
     for path, dirs, files in os.walk(os.path.abspath(directory)):
@@ -65,10 +65,11 @@ class CommandClass(commander.CommanderClass):
         replace_in_files(new_kitpath, 'Good Kitty', pretty_name, (".cfg", ".py", ".html", ".css"))
 
         # delete unnecessary stuff
-        for root, dirs, files in os.walk(new_kitpath):
-            for f in files:
-                if f.lower().endswith(".pyc"):
-                     os.remove(os.path.join(os.path.dirname(root), f))
+        for f in glob.glob(new_kitpath + "/*/*.pyc"):
+            try:
+                os.remove(f)
+            except:
+                continue
 
         os.remove(os.path.join(new_kitpath, 'lxserv', 'setup.py'))
         os.remove(os.path.join(new_kitpath, 'README.md'))
