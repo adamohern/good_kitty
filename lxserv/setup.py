@@ -68,7 +68,7 @@ class CommandClass(commander.CommanderClass):
         for root, dirs, files in os.walk(new_kitpath):
             for f in files:
                 if f.lower().endswith(".pyc"):
-                     os.remove(os.path.join(os.path.dirname(path), f))
+                     os.remove(os.path.join(os.path.dirname(root), f))
 
         os.remove(os.path.join(new_kitpath, 'lxserv', 'setup.py'))
         os.remove(os.path.join(new_kitpath, 'README.md'))
