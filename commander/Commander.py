@@ -142,27 +142,17 @@ class CommanderClass(lxu.command.BasicCommand):
 
             hints.Label(label)
 
-            if ARG_sPresetText in args[index]:
+            if args[index].get(ARG_VALUES_LIST_TYPE) == LIST_TYPE_sPresetText:
                 hints.Class("sPresetText")
 
     def arg_UIValueHints(self, index):
         args = self.commander_arguments()
         if index < len(args):
             arg = args[index]
-            hintType = ''
             arg_data = None
 
-            if arg.get(ARG_POPUP) is not None:
-                arg_data = arg.get(ARG_POPUP, [])
-                hintType = ARG_POPUP
-
-            elif arg.get(ARG_sPresetText) is not None:
-                arg_data = arg.get(ARG_sPresetText, [])
-                hintType = ARG_sPresetText
-
-            elif arg.get(ARG_FCL) is not None:
-                arg_data = arg.get(ARG_FCL, [])
-                hintType = ARG_FCL
+            if arg.get(ARG_VALUES_LIST) is not None:
+                arg_data = arg.get(ARG_VALUES_LIST)
 
             if not arg_data:
                 return
@@ -172,9 +162,16 @@ class CommanderClass(lxu.command.BasicCommand):
             elif hasattr(arg_data, '__call__'):
                 values = arg_data()
 
-            if hintType in (ARG_POPUP, ARG_sPresetText):
+            if not values:
+                values = []
+
+            if args[index].get(ARG_VALUES_LIST_TYPE) == LIST_TYPE_POPUP:
                 return PopupClass(values)
-            elif hintType == ARG_FCL:
+
+            elif args[index].get(ARG_VALUES_LIST_TYPE) == LIST_TYPE_sPresetText:
+                return PopupClass(values)
+
+            elif args[index].get(ARG_VALUES_LIST_TYPE) == LIST_TYPE_FCL:
                 return FormCommandListClass(values)
 
     def cmd_DialogInit(self):
@@ -224,7 +221,7 @@ class CommanderClass(lxu.command.BasicCommand):
 
         if index < len(args):
             is_query = 'query' in args[index].get(ARG_FLAGS, [])
-            is_not_fcl = False if args[index].get(ARG_FCL) else True
+            is_not_fcl = args[index].get(ARG_VALUES_LIST_TYPE) != LIST_TYPE_FCL
             has_recent_value = self.commander_arg_value(index)
 
             if is_query and is_not_fcl and has_recent_value:
