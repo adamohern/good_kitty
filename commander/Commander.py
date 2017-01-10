@@ -62,14 +62,14 @@ class CommanderClass(lxu.command.BasicCommand):
         for n, argument in enumerate(self.commander_arguments()):
 
             if not argument.get(ARG_DATATYPE):
-                continue
+                return lx.symbol.e_FAILED
 
             if not argument.get(ARG_NAME):
-                continue
+                return lx.symbol.e_FAILED
 
             datatype = getattr(lx.symbol, 'sTYPE_' + argument[ARG_DATATYPE].upper())
             if not datatype:
-                continue
+                return lx.symbol.e_FAILED
 
             self.dyna_Add(argument[ARG_NAME], datatype)
             self._commander_default_values.append(argument.get(ARG_VALUE))
@@ -84,7 +84,8 @@ class CommanderClass(lxu.command.BasicCommand):
 
         self.notifiers = []
         self.notifier_tuples = tuple([i for i in self.commander_notifiers()])
-        self.notifiers = [None] * len(self.notifier_tuples)
+        for i in self.notifier_tuples:
+            self.notifiers.append(None)
 
     def commander_arguments(self):
         return []
@@ -116,7 +117,7 @@ class CommanderClass(lxu.command.BasicCommand):
     def cmd_NotifyAddClient(self, argument, object):
         for i, tup in enumerate(self.notifier_tuples):
             if self.notifiers[i] is None:
-                self.notifiers[i] = self.not_svc.Spawn(self.notifier_tuples[i][0], self.notifier_tuples[i][1])
+                self.notifiers[i] = self.not_svc.Spawn (self.notifier_tuples[i][0], self.notifier_tuples[i][1])
 
             self.notifiers[i].AddClient(object)
 
@@ -132,24 +133,49 @@ class CommanderClass(lxu.command.BasicCommand):
         args = self.commander_arguments()
         if index < len(args):
             label = args[index].get(ARG_LABEL)
+
             if not label:
                 label = args[index].get(ARG_NAME)
+
+            elif hasattr(label, '__call__'):
+                label = label()
+
             hints.Label(label)
 
-            if args[index].get(ARG_VALUES_LIST_TYPE) == LIST_TYPE_sPresetText:
+            if ARG_sPresetText in args[index]:
                 hints.Class("sPresetText")
 
     def arg_UIValueHints(self, index):
         args = self.commander_arguments()
         if index < len(args):
-            if args[index].get(ARG_VALUES_LIST_TYPE) == LIST_TYPE_POPUP:
-                return PopupClass(args[index].get(ARG_VALUES_LIST, []))
+            arg = args[index]
+            hintType = ''
+            arg_data = None
 
-            elif args[index].get(ARG_VALUES_LIST_TYPE) == LIST_TYPE_sPresetText:
-                return PopupClass(args[index].get(ARG_VALUES_LIST, []))
+            if arg.get(ARG_POPUP) is not None:
+                arg_data = arg.get(ARG_POPUP, [])
+                hintType = ARG_POPUP
 
-            elif args[index].get(ARG_VALUES_LIST_TYPE) == LIST_TYPE_FCL:
-                return FormCommandListClass(args[index].get(ARG_VALUES_LIST, []))
+            elif arg.get(ARG_sPresetText) is not None:
+                arg_data = arg.get(ARG_sPresetText, [])
+                hintType = ARG_sPresetText
+
+            elif arg.get(ARG_FCL) is not None:
+                arg_data = arg.get(ARG_FCL, [])
+                hintType = ARG_FCL
+
+            if not arg_data:
+                return
+
+            if isinstance(arg_data, (list, tuple)):
+                values = arg_data
+            elif hasattr(arg_data, '__call__'):
+                values = arg_data()
+
+            if hintType in (ARG_POPUP, ARG_sPresetText):
+                return PopupClass(values)
+            elif hintType == ARG_FCL:
+                return FormCommandListClass(values)
 
     def cmd_DialogInit(self):
         for n, argument in enumerate(self.commander_arguments()):
@@ -190,7 +216,7 @@ class CommanderClass(lxu.command.BasicCommand):
         except:
             lx.out(traceback.format_exc())
 
-    def cmd_Query(self, index, vaQuery):
+    def cmd_Query(self,index,vaQuery):
         va = lx.object.ValueArray()
         va.set(vaQuery)
 
@@ -198,14 +224,13 @@ class CommanderClass(lxu.command.BasicCommand):
 
         if index < len(args):
             is_query = 'query' in args[index].get(ARG_FLAGS, [])
-            is_not_fcl = args[index].get(ARG_VALUES_LIST_TYPE) != LIST_TYPE_FCL
+            is_not_fcl = False if args[index].get(ARG_FCL) else True
             has_recent_value = self.commander_arg_value(index)
 
             if is_query and is_not_fcl and has_recent_value:
                 va.AddString(str(self.commander_arg_value(index)))
 
         return lx.result.OK
-
 
 class FormCommandListClass(UIValueHints):
     def __init__(self, items):
@@ -217,9 +242,8 @@ class FormCommandListClass(UIValueHints):
     def uiv_FormCommandListCount(self):
         return len(self._items)
 
-    def uiv_FormCommandListByIndex(self, index):
+    def uiv_FormCommandListByIndex(self,index):
         return self._items[index]
-
 
 class PopupClass(UIValueHints):
     def __init__(self, items):
@@ -227,7 +251,7 @@ class PopupClass(UIValueHints):
             self._user = []
             self._internal = []
 
-        elif isinstance(items[0],(list, tuple)):
+        elif isinstance(items[0], (list, tuple)):
             self._user = [str(i[1]) for i in items]
             self._internal = [str(i[0]) for i in items]
 
@@ -241,8 +265,8 @@ class PopupClass(UIValueHints):
     def uiv_PopCount(self):
         return len(self._internal)
 
-    def uiv_PopUserName(self, index):
+    def uiv_PopUserName(self,index):
         return self._user[index]
 
-    def uiv_PopInternalName(self, index):
+    def uiv_PopInternalName(self,index):
         return self._internal[index]
