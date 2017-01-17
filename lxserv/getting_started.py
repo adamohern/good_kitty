@@ -1,6 +1,6 @@
-import lx, modo, commander, os, glob
+import lx, modo, good_kitty, os, glob
 
-class CommandClass(commander.CommanderClass):
+class CommandClass(good_kitty.CommanderClass):
     _commander_default_values = []
 
     def commander_execute(self, msg, flags):

@@ -1,10 +1,10 @@
-import lx, modo, commander
+import lx, modo, good_kitty
 
 """A simple example of a blessed MODO command using the commander module.
 https://github.com/adamohern/commander for details"""
 
 
-class CommandClass(commander.CommanderClass):
+class CommandClass(good_kitty.CommanderClass):
     _commander_last_used = []
 
     def commander_arguments(self):

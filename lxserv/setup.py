@@ -1,4 +1,4 @@
-import lx, modo, commander, os, shutil, glob
+import lx, modo, good_kitty, os, shutil, glob
 
 def replace_in_files(directory, find, replace, list_of_extensions):
     for path, dirs, files in os.walk(os.path.abspath(directory)):
@@ -12,9 +12,9 @@ def replace_in_files(directory, find, replace, list_of_extensions):
                     f.write(s)
 
 def replace_in_filenames(directory, find, replace):
-    paths_list = (os.path.join(root, filename)
-        for root, _, filenames in os.walk(directory)
-        for filename in filenames
+    paths_list = (os.path.join(root, path)
+        for root, directories, filenames in os.walk(directory)
+        for path in filenames + directories
     )
 
     paths_list = [path for path in paths_list if (os.sep + '.git' + os.sep) not in path]
@@ -26,7 +26,7 @@ def replace_in_filenames(directory, find, replace):
             os.rename(path,newname)
 
 
-class CommandClass(commander.CommanderClass):
+class CommandClass(good_kitty.CommanderClass):
     _commander_default_values = []
 
     def commander_arguments(self):
