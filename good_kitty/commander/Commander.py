@@ -161,6 +161,8 @@ class CommanderClass(lxu.command.BasicCommand):
                 values = arg_data
             elif hasattr(arg_data, '__call__'):
                 values = arg_data()
+            elif issubclass(arg_data, UIValueHints):
+                return arg_data()
 
             if not values:
                 values = []
