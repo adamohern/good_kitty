@@ -1,6 +1,6 @@
 # python
 
-import lx, os, modo, datetime, re
+import lx, os, modo, datetime, re, sys
 import xml.etree.ElementTree as ET
 
 args = lx.args()
@@ -27,8 +27,12 @@ else:
 
 config_file_path = lx.eval("query platformservice path.path ? configname")
 
-with open(config_file_path, "r") as fp:
-    root = ET.fromstring(unicode(fp.read(), errors='ignore'))
+try:
+    with open(config_file_path, "r") as fp:
+        root = ET.fromstring(unicode(fp.read(), errors='ignore'))
+except:
+    modo.dialogs.alert("Failed", "Could not open config file.")
+    sys.exit()
 
 kids = root.getchildren()
 

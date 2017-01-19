@@ -53,7 +53,4 @@ class CommandClass(good_kitty.CommanderClass):
         modo.dialogs.alert("Kit Initialized", "Your new kit is working. Have fun.")
 
 
-        # open folder in file browser
-        lx.eval('file.open {%s}' % new_kitpath)
-
 lx.bless(CommandClass, 'good_kitty.cleanup')

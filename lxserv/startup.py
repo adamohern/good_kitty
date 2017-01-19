@@ -1,4 +1,4 @@
-import lx, modo, good_kitty, xml.etree.ElementTree, os
+import lx, modo, good_kitty, xml.etree.ElementTree, os, sys
 
 class StartupCommandClass(good_kitty.CommanderClass):
     _commander_default_values = []
@@ -7,12 +7,13 @@ class StartupCommandClass(good_kitty.CommanderClass):
         # retrieve current kit path
         lxserv_path = os.path.dirname(os.path.realpath(__file__))
         new_kitpath = os.path.dirname(lxserv_path)
-
         tmp_file = os.path.join(new_kitpath, "tmp.xml")
 
         if not os.path.isfile(tmp_file):
+            lx.out("Unable to find:", tmp_file)
+            lx.out("Running setup routine...")
             lx.eval('good_kitty.setup')
-            return
+            sys.exit()
 
         tmp_xml = xml.etree.ElementTree.parse(tmp_file).getroot()
         elements = tmp_xml.getchildren()

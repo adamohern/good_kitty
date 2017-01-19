@@ -97,8 +97,10 @@ class CommandClass(good_kitty.CommanderClass):
     def commander_execute(self, msg, flags):
         pretty_name = self.commander_arg_value(0)
         internal_name = self.commander_arg_value(1)
+
         modesTail = self.commander_arg_value(2)
         presets = self.commander_arg_value(3)
+
         InputRemapping = "InputRemapping" if self.commander_arg_value(4) else ""
         DirBrowser = "DirBrowser" if self.commander_arg_value(5) else ""
         Preferences = "Preferences" if self.commander_arg_value(6) else ""
@@ -108,7 +110,7 @@ class CommandClass(good_kitty.CommanderClass):
         UIElements = "UIElements" if self.commander_arg_value(10) else ""
         UserValues = "UserValues" if self.commander_arg_value(11) else ""
 
-        if modo.dialogs.yesNo("Are you sure?", "Customizing good_kitty requires MODO to restart. Are you sure?") == 'no':
+        if modo.dialogs.yesNo("Are you sure?", "Customizing good_kitty requires MODO to quit when finished. Are you sure?") == 'no':
             return
 
         kitpath = lx.eval("query platformservice alias ? {kit_good_kitty:}")
@@ -166,8 +168,16 @@ class CommandClass(good_kitty.CommanderClass):
             f.write('  <element key="configs_to_extract">%s</element>\n' % configs_to_extract)
             f.write("</data>")
 
-        # alert with help info
-        lx.eval('app.restart')
 
+        # NOTE: For some reason app.restart was corrupting the user config file.
+        # My workaround is to simply use app.quit and rely on the user to run
+        # MODO again.
+
+        # alert with help info
+        modo.dialogs.alert("Quitting MODO", "MODO will now quit. Changes will take effect next time MODO runs.")
+
+        # open folder in file browser
+        lx.eval('file.open {%s}' % new_kitpath)
+        lx.eval('app.quit')
 
 lx.bless(CommandClass, 'good_kitty.setup')
