@@ -44,7 +44,6 @@ for kid in kids:
         continue
 
     if tagType in keepers:
-        print "keeping:", kid.tag, tagType
 
         split = os.path.splitext(destination_path)
         final_path = "%s_%s%s" % (split[0], tagType, split[1])

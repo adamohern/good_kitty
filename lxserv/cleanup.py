@@ -9,6 +9,7 @@ class CommandClass(good_kitty.CommanderClass):
         new_kitpath = os.path.dirname(lxserv_path)
 
         index_file = os.path.join(new_kitpath, "index.cfg")
+
         index_xml = xml.etree.ElementTree.parse(index_file).getroot()
         kitname = index_xml.attrib["kit"]
 
@@ -23,8 +24,6 @@ class CommandClass(good_kitty.CommanderClass):
 
         # read configs to extract from temp file
         tmp_file = os.path.join(new_kitpath, "tmp.xml")
-        if not os.path.isfile(tmp_file):
-            lx.eval('good_kitty.setup')
 
         tmp_xml = xml.etree.ElementTree.parse(tmp_file).getroot()
         elements = tmp_xml.getchildren()
@@ -35,11 +34,12 @@ class CommandClass(good_kitty.CommanderClass):
                 values[element.attrib['key']] = element.text
 
         if "configs_to_extract" in values:
-            arg2 = " {%s}" % values["configs_to_extract"]
+            arg2 = ' "%s"' % values["configs_to_extract"]
         else:
             arg2 = ""
 
-        lx.eval("@good_kitty_prefs_extractor.py {%s}%s" % (os.path.join(new_kitpath, 'Configs', 'Extracted.cfg'), arg2))
+        command_string = '@good_kitty_prefs_extractor.py "%s"%s' % (os.path.join(new_kitpath, 'Configs', 'Extracted.cfg'), arg2)
+        lx.eval(command_string)
 
 
         # remove cruft
@@ -48,6 +48,7 @@ class CommandClass(good_kitty.CommanderClass):
         os.remove(os.path.join(new_kitpath, 'Configs', 'startup.cfg'))
         os.remove(os.path.join(new_kitpath, 'lxserv', 'cleanup.py'))
         os.remove(os.path.join(new_kitpath, 'lxserv', 'startup.py'))
+
 
         # celebrate
         modo.dialogs.alert("Kit Initialized", "Your new kit is working. Have fun.")

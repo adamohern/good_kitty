@@ -10,8 +10,6 @@ class StartupCommandClass(good_kitty.CommanderClass):
         tmp_file = os.path.join(new_kitpath, "tmp.xml")
 
         if not os.path.isfile(tmp_file):
-            lx.out("Unable to find:", tmp_file)
-            lx.out("Running setup routine...")
             lx.eval('good_kitty.setup')
             sys.exit()
 
