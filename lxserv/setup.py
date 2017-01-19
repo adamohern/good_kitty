@@ -1,4 +1,4 @@
-import lx, modo, good_kitty, os, shutil, glob
+import lx, modo, good_kitty, os, shutil, glob, datetime
 
 def replace_in_files(directory, find, replace, list_of_extensions):
     for path, dirs, files in os.walk(os.path.abspath(directory)):
@@ -41,12 +41,72 @@ class CommandClass(good_kitty.CommanderClass):
                 'datatype': 'string',
                 'label': 'Internal Name',
                 'default': 'my_great_kit'
+            }, {
+                'name': 'modesTail',
+                'datatype': 'boolean',
+                'label': 'Include Modes Tail Form',
+                'default': True
+            }, {
+                'name': 'presets',
+                'datatype': 'boolean',
+                'label': 'Include Presets Directory',
+                'default': True
+            }, {
+                'name': 'InputRemapping',
+                'datatype': 'boolean',
+                'label': 'Extract Input Remapping',
+                'default': True
+            }, {
+                'name': 'DirBrowser',
+                'datatype': 'boolean',
+                'label': 'Extract Preset Browser State',
+                'default': True
+            }, {
+                'name': 'Preferences',
+                'datatype': 'boolean',
+                'label': 'Extract Preferences',
+                'default': True
+            }, {
+                'name': 'AppGlobal',
+                'datatype': 'boolean',
+                'label': 'Extract Global Settings',
+                'default': True
+            }, {
+                'name': 'ToolPresetLists',
+                'datatype': 'boolean',
+                'label': 'Extract Tool Presets',
+                'default': True
+            }, {
+                'name': 'ToolSnapSettings',
+                'datatype': 'boolean',
+                'label': 'Extract Snapping Presets',
+                'default': True
+            }, {
+                'name': 'UIElements',
+                'datatype': 'boolean',
+                'label': 'Extract Color Schemes',
+                'default': True
+            }, {
+                'name': 'UserValues',
+                'datatype': 'boolean',
+                'label': 'Extract User Values',
+                'default': False
             }
         ]
 
     def commander_execute(self, msg, flags):
         pretty_name = self.commander_arg_value(0)
         internal_name = self.commander_arg_value(1)
+        modesTail = self.commander_arg_value(2)
+        presets = self.commander_arg_value(3)
+        InputRemapping = "InputRemapping" if self.commander_arg_value(4) else ""
+        DirBrowser = "DirBrowser" if self.commander_arg_value(5) else ""
+        Preferences = "Preferences" if self.commander_arg_value(6) else ""
+        AppGlobal = "AppGlobal" if self.commander_arg_value(7) else ""
+        ToolPresetLists = "ToolPresetLists" if self.commander_arg_value(8) else ""
+        ToolSnapSettings = "ToolSnapSettings" if self.commander_arg_value(9) else ""
+        UIElements = "UIElements" if self.commander_arg_value(10) else ""
+        UserValues = "UserValues" if self.commander_arg_value(11) else ""
 
         if modo.dialogs.yesNo("Are you sure?", "Customizing good_kitty requires MODO to restart. Are you sure?") == 'no':
             return
@@ -64,27 +124,49 @@ class CommandClass(good_kitty.CommanderClass):
         replace_in_files(new_kitpath, 'good_kitty', internal_name, (".cfg", ".py", ".html", ".css"))
         replace_in_files(new_kitpath, 'Good Kitty', pretty_name, (".cfg", ".py", ".html", ".css"))
 
-        # delete unnecessary stuff
+        # delete pyc files
         for f in glob.glob(new_kitpath + "/*/*.pyc"):
             try:
                 os.remove(f)
             except:
                 continue
 
+        # delete modes tail if necessary
+        if not modesTail:
+            os.remove(os.path.join(new_kitpath, 'Configs', 'forms_modes_tail.cfg'))
+
+        # delete presets directory mapping if necessary
+        if not presets:
+            os.remove(os.path.join(new_kitpath, 'Configs', 'presets.cfg'))
+
+        # delete installation-related files
         os.remove(os.path.join(new_kitpath, 'lxserv', 'setup.py'))
         os.remove(os.path.join(new_kitpath, 'README.md'))
         os.remove(os.path.join(new_kitpath, '.gitignore'))
         shutil.rmtree(os.path.join(new_kitpath, '.git'), True)
 
-        # open folder in file browser
-        lx.eval('file.open {%s}' % new_kitpath)
+        # leave ourselves some temp information for after the restart
+        configs_to_extract = ";".join((
+                InputRemapping,
+                DirBrowser,
+                Preferences,
+                AppGlobal,
+                ToolPresetLists,
+                ToolSnapSettings,
+                UIElements,
+                UserValues
+            ))
 
-        # tell the user what to do next on restart
-        lx.eval('user.value kitty_kit_new_name {kit_%s}' % internal_name)
-        lx.eval('user.value kitty_kit_initialize 1')
+        with open(os.path.join(new_kitpath, "tmp.xml"), 'w+') as f:
+            f.write('<?xml version="1.0" encoding="UTF-8"?>\n\n')
+            f.write('<!-- Created by good_kitty on %s -->\n' % datetime.datetime.now().strftime("%d-%M-%y at %H:%M"))
+            f.write('<!-- This file should self-destruct during the good_kitty setup process. If you\'re reading this, something has gone wrong.-->\n\n')
+            f.write("<data>\n")
+            f.write('  <element key="initialize">1</element>\n')
+            f.write('  <element key="configs_to_extract">%s</element>\n' % configs_to_extract)
+            f.write("</data>")
 
         # alert with help info
-        modo.dialogs.alert("Restarting", "good_kitty has been customized. Restarting MODO.")
         lx.eval('app.restart')
 
 

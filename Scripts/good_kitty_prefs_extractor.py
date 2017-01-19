@@ -1,22 +1,35 @@
 # python
 
-import lx, os, modo, datetime
+import lx, os, modo, datetime, re
 import xml.etree.ElementTree as ET
 
-destination_path = modo.dialogs.customFile('fileSave', 'Save File', ('config',), ('MODO Config File',), ext=('cfg',))
+args = lx.args()
 
-keepers = [
-    "ModifierKeys",
-    "DirBrowser",
-    "Preferences",
-    "AppGlobal",
-    "UserValues"
-]
+if len(args) > 0:
+    destination_path = args[0].translate(None, "{}")
+else:
+    destination_path = modo.dialogs.customFile('fileSave', 'Save File', ('config',), ('MODO Config File',), ext=('cfg',))
+
+if len(args) > 1:
+    keepers = args[1].split(";")
+    keepers = [i.translate(None, "{}") for i in keepers if i]
+else:
+    keepers = [
+        "InputRemapping",
+        "DirBrowser",
+        "Preferences",
+        "AppGlobal",
+        "ToolPresetLists",
+        "ToolSnapSettings",
+        "UIElements",
+        "UserValues"
+    ]
 
 config_file_path = lx.eval("query platformservice path.path ? configname")
 
-tree = ET.parse(config_file_path)
-root = tree.getroot()
+with open(config_file_path, "r") as fp:
+    root = ET.fromstring(unicode(fp.read(), errors='ignore'))
+
 kids = root.getchildren()
 
 trees = dict()

@@ -1,14 +1,27 @@
-import lx, modo, good_kitty
+import lx, modo, good_kitty, xml.etree.ElementTree, os
 
 class StartupCommandClass(good_kitty.CommanderClass):
     _commander_default_values = []
 
     def commander_execute(self, msg, flags):
-        if lx.eval('user.value kitty_kit_initialize ?') == 0:
+        # retrieve current kit path
+        lxserv_path = os.path.dirname(os.path.realpath(__file__))
+        new_kitpath = os.path.dirname(lxserv_path)
+
+        tmp_file = os.path.join(new_kitpath, "tmp.xml")
+
+        if not os.path.isfile(tmp_file):
             lx.eval('good_kitty.setup')
-        elif lx.eval('user.value kitty_kit_initialize ?') == 1:
-            lx.eval('good_kitty.getting_started')
-        else:
-            pass
+            return
+
+        tmp_xml = xml.etree.ElementTree.parse(tmp_file).getroot()
+        elements = tmp_xml.getchildren()
+
+        values = dict()
+        for element in elements:
+            values[element.attrib['key']] = element.text
+
+        if values["initialize"] == "1":
+            lx.eval('good_kitty.cleanup')
 
 lx.bless(StartupCommandClass, 'good_kitty.startup')
