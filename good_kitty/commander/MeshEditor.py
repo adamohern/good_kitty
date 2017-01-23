@@ -112,7 +112,7 @@ class MeshEditorClass():
         visitor = PolysByConnectedClass (self.polygon_accessor, self.edge_accessor, mark_mode_valid)
         self.polygon_accessor.Enumerate (mark_mode_selected, visitor, 0)
 
-        return visitor.getPolyIDs()
+        return visitor.getIslands()
 
     def get_selected_polys_by_flood(self, i_POLYTAG = lx.symbol.i_POLYTAG_MATERIAL):
         mark_mode_selected = self.mesh_svc.ModeCompose (lx.symbol.sMARK_SELECT, None)
@@ -167,12 +167,16 @@ class PolysByConnectedClass (Visitor):
         self.mark_mode_valid = mark_mode_valid
 
         self.polygonIDs = set ()
+        self.islands = set()
 
     def reset (self):
         self.polygonIDs = set ()
 
     def getPolyIDs (self):
         return self.polygonIDs
+
+    def getIslands(self):
+        return self.islands
 
     def vis_Evaluate (self):
         inner_list = set ()
@@ -205,6 +209,7 @@ class PolysByConnectedClass (Visitor):
                                         outer_list.add (edge_polygon_ID)
 
         self.polygonIDs.update (inner_list)
+        self.islands.add (tuple(sorted(inner_list)))
 
 class PolysByTagFloodClass (Visitor):
     def __init__ (self, polygon, edge, mark_mode_valid, i_POLYTAG):

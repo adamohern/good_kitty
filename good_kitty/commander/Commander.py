@@ -232,10 +232,10 @@ class CommanderClass(lxu.command.BasicCommand):
         if index < len(args):
             is_query = 'query' in args[index].get(ARG_FLAGS, [])
             is_not_fcl = args[index].get(ARG_VALUES_LIST_TYPE) != LIST_TYPE_FCL
-            has_recent_value = self.commander_arg_value(index)
+            has_recent_value = self._commander_default_values[index]
 
             if is_query and is_not_fcl and has_recent_value:
-                va.AddString(str(self.commander_arg_value(index)))
+                va.AddString(has_recent_value)
 
         return lx.result.OK
 
