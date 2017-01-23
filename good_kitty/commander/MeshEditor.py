@@ -79,8 +79,8 @@ class MeshEditorClass():
                 lx.out(traceback.print_exc())
                 break
 
-        if self.mesh_edit_flags and not read_only:
-            layer_scan.SetMeshChange (n, reduce(ior, self.mesh_edit_flags))
+            if self.mesh_edit_flags and not read_only:
+                layer_scan.SetMeshChange (n, reduce(ior, self.mesh_edit_flags))
 
         layer_scan.Apply ()
 

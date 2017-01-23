@@ -114,6 +114,14 @@ class CommanderClass(lxu.command.BasicCommand):
 
         return default
 
+    def commander_args(self):
+        args = {}
+        for i in range(len(self.commander_arguments())):
+            name = self.commander_arguments()[i][ARG_NAME]
+            value = self.commander_arg_value(i)
+            args[name] = value
+        return args
+
     def cmd_NotifyAddClient(self, argument, object):
         for i, tup in enumerate(self.notifier_tuples):
             if self.notifiers[i] is None:
