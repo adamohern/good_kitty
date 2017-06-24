@@ -5,53 +5,41 @@ Commander is a clean, simple wrapper for writing MODO commands with common UI el
 
 To implement a command, just include the commander module and, when creating your command class, extend `commander.CommanderClass` instead of `lxu.command.BasicCommand` as you normally would.
 
-*IMPORTANT* commander has been implemented inside a sub-module within good_kitty. So if you're using good_kitty to implement commander, you'll need to implement your command classes using `good_kitty.CommanderClass` rather than `commander.CommanderClass` as shown below, replacing the string `good_kitty` with the name of your kit. This is to ensure that different versions of commander in different kits do not conflict with one another.
-
 ```python
 import commander
 
 class CommandClass(commander.CommanderClass):
-  _commander_default_values = []
-
   def commander_execute(self, msg, flags):
-    lx.out(' and '.join(['bacon', 'eggs']))
+    lx.out('%s and %s' % ('bacon', 'eggs'))
 
 lx.bless(CommandClass, 'breakfast')
 ```
 
 Hooray! You now have a first-class MODO command. Type `breakfast` into the MODO command line, and read your delicious result.
 
-The only slightly weird bit is that you have to include the `_commander_default_values` definition in your class, otherwise things will go sideways as soon as you use the class more than once. Just trust me on that one.
-
-But it really gets nice when you want to ask the user for something.
-
 ```python
 import commander
 
 class CommandClass(commander.CommanderClass):
-  _commander_default_values = []
-
   def commander_arguments(self):
     return [
       {
-        'name': 'dish1',
+        'name': 'dish_1',
         'datatype': 'string'
       }, {
-        'name': 'dish2',
+        'name': 'dish_2',
         'datatype': 'string'
       }
     ]
 
   def commander_execute(self, msg, flags):
-    dish1 = self.commander_arg_value(0)
-    dish2 = self.commander_arg_value(1)
-
-    lx.out(' and '.join([dish1, dish2]))
+    dishes = self.commander_args()
+    lx.out('%s and %s' % (dishes['dish_1'], dishes['dish_2']))
 
 lx.bless(CommandClass, 'breakfast')
 ```
 
-The above isn't a big advantage over the traditional `lxu.basic.BasicCommand` import, but that's because it's simplistic.
+This asks the user for two strings in a command dialog. Easy enough.
 
 Usually you want to include fancy stuff like popup menus for limiting your user's options, or `'sPresetText'` fields for suggesting possible values while allowing for arbitrary choices. Those take quite a lot of extra legwork with `BasicCommand`, but not with `commander`:
 
@@ -59,21 +47,17 @@ Usually you want to include fancy stuff like popup menus for limiting your user'
 import commander
 
 class CommandClass(commander.CommanderClass):
-  _commander_default_values = []
-
   def commander_arguments(self):
     return [
       {
-        'name': 'dish1',
+        'name': 'dish_1',
         'datatype': 'string',
-        'label': 'First Dish',
         'default': 'bacon',
         'values_list_type': 'popup',
         'values_list': ['bacon', 'quinoa']
       }, {
-        'name': 'dish2',
+        'name': 'dish_2',
         'datatype': 'string',
-        'label': 'Second Dish',
         'default': 'eggs',
         'values_list_type': 'sPresetText'
         'values_list': ['eggs', 'kale']
@@ -81,10 +65,8 @@ class CommandClass(commander.CommanderClass):
     ]
 
   def commander_execute(self, msg, flags):
-    dish1 = self.commander_arg_value(0)
-    dish2 = self.commander_arg_value(1)
-
-    lx.out(' and '.join([dish1, dish2]))
+    dishes = self.commander_args()
+    lx.out('%s and %s' % (dishes['dish_1'], dishes['dish_2']))
 
 lx.bless(CommandClass, 'breakfast')
 ```
@@ -155,13 +137,10 @@ You can even build Form Command Lists (a list of programmatically-generated butt
 
 ```python
 class CommandClass(commander.CommanderClass):
-    _commander_default_values = []
-
     def commander_arguments(self):
         return [
                 {
                     'name': 'myGreatQuery',
-                    'label': 'Query This',
                     'datatype': 'integer',
                     'default': '',
                     'values_list_type': 'fcl'
@@ -176,11 +155,143 @@ class CommandClass(commander.CommanderClass):
 lx.bless(CommandClass, CMD_NAME)
 ```
 
-The above example lists the buttons `'render'`, `'render'`, and `'render'` all in a row in your form. Money. (If you've ever done this before manually, you are very happy right now.)
+Speaking of the `query` flag, you can of course use it to query data within a command.
 
-Okay, I'm getting silly now.
+A common use-case would be a toggle button. The cleanest way is to have two separate arguments: one for the toggle mode, and another to query a boolean. You'll need to store a persistent state, of course, so we use a class variable.
 
-Sigh. Why can't life always be this easy?
+Observe.
+
+```python
+class CommandClass(commander.CommanderClass):
+
+    # This class variable stores our current toggle state.
+    _state = False
+
+    # Define two separate arguments: one for what we want to do when the command
+    # is clicked in a toolbar, and the second is a query for displaying the current
+    # toggle state.
+    def commander_arguments(self):
+        return [
+                {
+                    'name': 'mode',
+                    'datatype': 'integer',
+                    'default': 'toggle',
+                    'values_list_type': 'popup'
+                    'values_list': ['toggle', 'on', 'off']
+                }, {
+                    'name': 'query_me',
+                    'datatype': 'boolean',
+                    'default': 0,
+                    'flags': ['query', 'optional']
+                }
+            ]
+
+    # If you're not familiar with the @classmethod decorator and how it relates
+    # to class variables, it'd be worth your time to do some reading.
+    # In this case, we set the _state variable not just for the current object,
+    # but for all objects of the current class.
+    @classmethod
+    def set_state(cls, value):
+        cls._state = value
+
+    def commander_execute(self):
+        # In addition to `commander_args()`, we can get a specific arg value
+        # by index using `commander_arg_value(index)`. Just for funsies.
+        mode = self.commander_arg_value(0)
+
+        if mode == 'on':
+            # If on, toggle True
+            self.set_state(True)
+
+        elif mode == 'off':
+            # If off, toggle False
+            self.set_state(False)
+
+        else:
+            # Otherwise toggle the value
+            state = False if self._state else True
+            self.set_state(state)
+
+    def commander_query(self, arg_index):
+        # This just returns the query value based on the index of the argument
+        # being queried. Our query arg is the second one in the list, so:
+        if arg_index == 1:
+            return self._state
+
+lx.bless(CommandClass, CMD_NAME)
+```
+
+## Nuances
+
+First, it can be a good idea to use constants rather than string literals for
+key values in your dictionaries, as below. (I don't do this in the examples above
+for readability, and I personally like it that way. But be warned: Joe will
+send you angry emoji if you use string literals.)
+
+```python
+commander.NAME = 'name'
+commander.LABEL = 'label'
+commander.VALUE = 'default'
+commander.DATATYPE = 'datatype'
+commander.FLAGS = 'flags'
+commander.VALUES_LIST_TYPE = 'values_list_type'
+commander.VALUES_LIST = 'values_list'
+```
+
+Second, if your argument names are in ``"decent_underscore_style_english"``, the arg
+labels will be generated automatically by replacing underscores with spaces and
+capitalizing words. (e.g. "Decent Underscore Style English")
+
+Third, in many cases, your popups may contain dynamic information, like a list of
+polygon tags. For performance reasons, it's important that the function or method
+that generates this list be passed into commander, not its result.
+
+Finally, note that you can override any of the normal `lxu.command.BasicCommand`
+methods as you normally would for adding a `basic_ButtonName` or `basic_Icon`, etc.
+
+For example:
+
+```python
+import commander
+
+class CommandClass(commander.CommanderClass):
+  def commander_arguments(self):
+    return [
+      {
+        # Since I'm not providing a label, "First Number" will be used.
+        commander.NAME: 'first_number',
+        commander.DATATYPE: 'float',
+        commander.VALUE: 1.0,
+        commander.VALUES_LIST_TYPE: 'popup',
+
+        # Be sure not to put the parenthesis after the method name,
+        # i.e. self.generate_list - NOT self.generate_list()
+        commander.VALUES_LIST: self.generate_list
+      }, {
+        commander.NAME: 'second_number',
+        commander.DATATYPE: 'float',
+        commander.VALUE: 2.0,
+        commander.VALUES_LIST_TYPE: 'sPresetText'
+        commander.VALUES_LIST: self.generate_list
+      }
+    ]
+
+  def commander_execute(self, msg, flags):
+    numbers = self.commander_args()
+    lx.out(numbers['first_number'] + numbers['second_number'])
+
+  # If you generate dynamic values for a popup list, be sure to pass it
+  # the actual method itself (see above).
+  def generate_list(self):
+    return float(i) for i in range(10)
+
+  # You can override any of the normal lxu.command.BasicCommand stuff.
+  def basic_ButtonName(self):
+    return "Add Two Numbers..."
+
+
+lx.bless(CommandClass, 'breakfast')
+```
 
 Enjoy.
 Adam

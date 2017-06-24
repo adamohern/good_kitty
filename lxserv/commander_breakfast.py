@@ -5,21 +5,18 @@ https://github.com/adamohern/commander for details"""
 
 
 class CommandClass(good_kitty.CommanderClass):
-    _commander_last_used = []
 
     def commander_arguments(self):
         return [
             {
                 'name': 'dish1',
                 'datatype': 'string',
-                'label': 'First Dish',
                 'default': 'bacon',
                 'values_list_type': 'popup',
                 'values_list': ['bacon', 'quinoa']
             }, {
                 'name': 'dish2',
                 'datatype': 'string',
-                'label': 'Second Dish',
                 'default': 'eggs',
                 'values_list_type': 'sPresetText',
                 'values_list': ['eggs', 'kale']

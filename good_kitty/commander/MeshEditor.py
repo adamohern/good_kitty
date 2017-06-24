@@ -106,11 +106,17 @@ class MeshEditorClass():
         return visitor.getPolyIDs()
 
     def get_selected_polys_by_island(self):
-        mark_mode_selected = self.mesh_svc.ModeCompose (lx.symbol.sMARK_SELECT, None)
-        mark_mode_valid = self.mesh_svc.ModeCompose (None, 'hide lock')
+        mark_mode_toCheck = self.mesh_svc.ModeCompose (lx.symbol.sMARK_SELECT, lx.symbol.sMARK_USER_0)
+        mark_mode_valid = self.mesh_svc.ModeCompose (None, ' '.join ((lx.symbol.sMARK_USER_0, lx.symbol.sMARK_HIDE, lx.symbol.sMARK_LOCK)))
+        mark_mode_checked = self.mesh_svc.ModeCompose (lx.symbol.sMARK_USER_0, None)
+        mark_mode_clearChecked = self.mesh_svc.ModeCompose (None, lx.symbol.sMARK_USER_0)
 
-        visitor = PolysByConnectedClass (self.polygon_accessor, self.edge_accessor, mark_mode_valid)
-        self.polygon_accessor.Enumerate (mark_mode_selected, visitor, 0)
+        # Wipe any existing user0 marks on the polygons, just so they don't interfere with our marks.
+        visClear = SetMarksClass (self.polygon_accessor, mark_mode_clearChecked)
+        self.polygon_accessor.Enumerate (mark_mode_checked, visClear, 0)
+
+        visitor = PolysByConnectedClass (self.polygon_accessor, self.edge_accessor, mark_mode_valid, mark_mode_checked)
+        self.polygon_accessor.Enumerate (mark_mode_toCheck, visitor, 0)
 
         return visitor.getIslands()
 
@@ -161,18 +167,24 @@ class PolysClass (Visitor):
         self.polygonIDs.add(self.polygon.ID())
 
 class PolysByConnectedClass (Visitor):
-    def __init__ (self, polygon, edge, mark_mode_valid):
+    def __init__ (self, polygon, edge, mark_mode_valid, mark_mode_checked):
         self.polygon = polygon
         self.edge = edge
         self.mark_mode_valid = mark_mode_valid
+        self.mark_mode_checked = mark_mode_checked
 
-        self.polygonIDs = set ()
-        self.islands = set()
+        self.polygonIDs = None
+        self.islands = []
 
     def reset (self):
-        self.polygonIDs = set ()
+        self.islands = []
+        self.polygonIDs = None
 
     def getPolyIDs (self):
+        if not self.polygonIDs:
+            self.polygonIDs = set ()
+            for island in self.islands:
+                self.polygonIDs |= set(island)
         return self.polygonIDs
 
     def getIslands(self):
@@ -184,32 +196,28 @@ class PolysByConnectedClass (Visitor):
 
         this_polygon_ID = self.polygon.ID ()
 
-        if this_polygon_ID not in outer_list:
-            outer_list.add (this_polygon_ID)
+        outer_list.add (this_polygon_ID)
 
-            while len(outer_list) > 0:
-                polygon_ID = outer_list.pop ()
+        while len(outer_list) > 0:
+            polygon_ID = outer_list.pop ()
 
-                self.polygon.Select (polygon_ID)
-                inner_list.add (polygon_ID)
+            self.polygon.Select (polygon_ID)
+            inner_list.add (polygon_ID)
+            self.polygon.SetMarks (self.mark_mode_checked)
 
-                num_points = self.polygon.VertexCount ()
-                polygon_points = [self.polygon.VertexByIndex (p) for p in xrange (num_points)]
+            num_points = self.polygon.VertexCount ()
+            polygon_points = [self.polygon.VertexByIndex (p) for p in xrange (num_points)]
 
-                for p in xrange (num_points):
-                    self.edge.SelectEndpoints (polygon_points[p], polygon_points[(p+1)%num_points])
-                    if self.edge.test ():
-                        for e in xrange (self.edge.PolygonCount ()):
-                            edge_polygon_ID = self.edge.PolygonByIndex (e)
-                            if edge_polygon_ID != polygon_ID:
-                                if edge_polygon_ID not in outer_list and edge_polygon_ID not in inner_list:
-                                    self.polygon.Select (edge_polygon_ID)
+            for p in xrange (num_points):
+                self.edge.SelectEndpoints (polygon_points[p], polygon_points[(p+1)%num_points])
+                for e in xrange (self.edge.PolygonCount ()):
+                    edge_polygon_ID = self.edge.PolygonByIndex (e)
+                    if edge_polygon_ID != polygon_ID and edge_polygon_ID not in inner_list and edge_polygon_ID not in outer_list:
+                        self.polygon.Select (edge_polygon_ID)
+                        if self.polygon.TestMarks (self.mark_mode_valid):
+                            outer_list.add (edge_polygon_ID)
 
-                                    if self.polygon.TestMarks (self.mark_mode_valid):
-                                        outer_list.add (edge_polygon_ID)
-
-        self.polygonIDs.update (inner_list)
-        self.islands.add (tuple(sorted(inner_list)))
+        self.islands.append (tuple(inner_list))
 
 class PolysByTagFloodClass (Visitor):
     def __init__ (self, polygon, edge, mark_mode_valid, i_POLYTAG):
