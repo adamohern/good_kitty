@@ -55,37 +55,37 @@ class CommandClass(good_kitty.CommanderClass):
                 'name': 'InputRemapping',
                 'datatype': 'boolean',
                 'label': 'Extract Input Remapping',
-                'default': True
+                'default': False
             }, {
                 'name': 'DirBrowser',
                 'datatype': 'boolean',
                 'label': 'Extract Preset Browser State',
-                'default': True
+                'default': False
             }, {
                 'name': 'Preferences',
                 'datatype': 'boolean',
                 'label': 'Extract Preferences',
-                'default': True
+                'default': False
             }, {
                 'name': 'AppGlobal',
                 'datatype': 'boolean',
                 'label': 'Extract Global Settings',
-                'default': True
+                'default': False
             }, {
                 'name': 'ToolPresetLists',
                 'datatype': 'boolean',
                 'label': 'Extract Tool Presets',
-                'default': True
+                'default': False
             }, {
                 'name': 'ToolSnapSettings',
                 'datatype': 'boolean',
                 'label': 'Extract Snapping Presets',
-                'default': True
+                'default': False
             }, {
                 'name': 'UIElements',
                 'datatype': 'boolean',
                 'label': 'Extract Color Schemes',
-                'default': True
+                'default': False
             }, {
                 'name': 'UserValues',
                 'datatype': 'boolean',
