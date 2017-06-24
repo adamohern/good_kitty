@@ -23,7 +23,7 @@ def replace_in_filenames(directory, find, replace):
         newname = os.path.basename(path).replace(find, replace)
         newname = os.path.join(os.path.dirname(path), newname)
         if newname != path:
-            os.rename(path,newname)
+            shutil.move(path,newname)
 
 
 class CommandClass(good_kitty.CommanderClass):
@@ -117,7 +117,7 @@ class CommandClass(good_kitty.CommanderClass):
         new_kitpath = os.path.join(os.path.dirname(kitpath), internal_name)
 
         # rename the kit directory
-        os.rename(kitpath, new_kitpath)
+        shutil.move(kitpath, new_kitpath)
 
         # rename any files containing 'good_kitty'
         replace_in_filenames(new_kitpath, 'good_kitty', internal_name)

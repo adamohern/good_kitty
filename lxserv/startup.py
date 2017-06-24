@@ -11,7 +11,7 @@ class StartupCommandClass(good_kitty.CommanderClass):
 
         if not os.path.isfile(tmp_file):
             lx.eval('good_kitty.setup')
-            sys.exit()
+            return
 
         tmp_xml = xml.etree.ElementTree.parse(tmp_file).getroot()
         elements = tmp_xml.getchildren()
