@@ -1,4 +1,13 @@
-import lx, modo, good_kitty, os, shutil, glob, datetime
+import os
+import shutil
+import glob
+import datetime
+
+import lx
+import modo
+
+import good_kitty
+
 
 def replace_in_files(directory, find, replace, list_of_extensions):
     for path, dirs, files in os.walk(os.path.abspath(directory)):
@@ -11,8 +20,10 @@ def replace_in_files(directory, find, replace, list_of_extensions):
                 with open(filepath, "w") as f:
                     f.write(s)
 
+
 def replace_in_filenames(directory, find, replace):
-    paths_list = (os.path.join(root, path)
+    paths_list = (
+        os.path.join(root, path)
         for root, directories, filenames in os.walk(directory)
         for path in filenames + directories
     )
@@ -23,7 +34,7 @@ def replace_in_filenames(directory, find, replace):
         newname = os.path.basename(path).replace(find, replace)
         newname = os.path.join(os.path.dirname(path), newname)
         if newname != path:
-            shutil.move(path,newname)
+            shutil.move(path, newname)
 
 
 class CommandClass(good_kitty.CommanderClass):
@@ -110,7 +121,10 @@ class CommandClass(good_kitty.CommanderClass):
         UIElements = "UIElements" if self.commander_arg_value(10) else ""
         UserValues = "UserValues" if self.commander_arg_value(11) else ""
 
-        if modo.dialogs.yesNo("Are you sure?", "Customizing good_kitty requires MODO to quit when finished. Are you sure?") == 'no':
+        if modo.dialogs.yesNo(
+                "Are you sure?",
+                "Customizing good_kitty requires MODO to quit when finished. Are you sure?"
+        ) == 'no':
             return
 
         kitpath = lx.eval("query platformservice alias ? {kit_good_kitty:}")
@@ -168,7 +182,6 @@ class CommandClass(good_kitty.CommanderClass):
             f.write('  <element key="configs_to_extract">%s</element>\n' % configs_to_extract)
             f.write("</data>")
 
-
         # NOTE: For some reason app.restart was corrupting the user config file.
         # My workaround is to simply use app.quit and rely on the user to run
         # MODO again.
@@ -179,5 +192,6 @@ class CommandClass(good_kitty.CommanderClass):
         # open folder in file browser
         lx.eval('file.open {%s}' % new_kitpath)
         lx.eval('app.quit')
+
 
 lx.bless(CommandClass, 'good_kitty.setup')

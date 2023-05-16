@@ -1,18 +1,24 @@
 # python
-
-import lx, os, modo, datetime, re, sys
+import os
+import sys
+import datetime
 import xml.etree.ElementTree as ET
 
+import lx
+import modo
+
+
 args = lx.args()
+translation_table = str.maketrans('', '', '{}')
 
 if len(args) > 0:
-    destination_path = args[0].translate(None, "{}")
+    destination_path = args[0].translate(translation_table)
 else:
     destination_path = modo.dialogs.customFile('fileSave', 'Save File', ('config',), ('MODO Config File',), ext=('cfg',))
 
 if len(args) > 1:
     keepers = args[1].split(";")
-    keepers = [i.translate(None, "{}") for i in keepers if i]
+    keepers = [i.translate(translation_table) for i in keepers if i]
 else:
     keepers = [
         "InputRemapping",
@@ -28,8 +34,8 @@ else:
 config_file_path = lx.eval("query platformservice path.path ? configname")
 
 try:
-    with open(config_file_path, "r") as fp:
-        root = ET.fromstring(unicode(fp.read(), errors='ignore'))
+    with open(config_file_path, "r", encoding="UTF-8") as fp:
+        root = ET.fromstring(fp.read())
 except:
     modo.dialogs.alert("Failed", "Could not open config file.")
     sys.exit()

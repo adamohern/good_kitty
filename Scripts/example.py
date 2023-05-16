@@ -1,4 +1,5 @@
-import lx, modo
+import lx
+import modo
 
 """Prints a list of all selected items."""
 

@@ -1,9 +1,14 @@
 # python
-
-import lx, lxu, traceback
-from lxifc import UIValueHints, Visitor
+import traceback
 from operator import ior
+from functools import reduce
+
+import lx
+import lxu
+from lxifc import UIValueHints, Visitor
+
 from Var import *
+
 
 class CommanderClass(lxu.command.BasicCommand):
 
@@ -160,7 +165,6 @@ class CommanderClass(lxu.command.BasicCommand):
         You should never need to touch this."""
         cls._commander_stored_values.append(value)
 
-
     def commander_arg_value(self, index, default=None):
         """Return a command argument value by index.
         If no argument value exists, returns the default parameter.
@@ -182,7 +186,7 @@ class CommanderClass(lxu.command.BasicCommand):
             return self.dyna_String(index)
 
         # If the value is a vector, use dyna_String to grab it, then parse it
-        # into a list of float vlues.
+        # into a list of float values.
         elif self.commander_arguments()[index][DATATYPE].lower() in sTYPE_STRING_vectors:
             return [float(i) for i in self.dyna_String(index).split(" ")]
 
@@ -303,7 +307,7 @@ class CommanderClass(lxu.command.BasicCommand):
             elif issubclass(arg_data, UIValueHints):
                 return arg_data()
 
-            # If values is None or "" or someother nonsense, return an empty list.
+            # If values is None or "" or some other nonsense, return an empty list.
             if not values:
                 values = []
 
@@ -403,7 +407,7 @@ class CommanderClass(lxu.command.BasicCommand):
 
         # Need to add the proper datatype based on result from commander_query
 
-        if isinstance(commander_query_result, basestring):
+        if isinstance(commander_query_result, str):
             va.AddString(commander_query_result)
 
         elif isinstance(commander_query_result, int):

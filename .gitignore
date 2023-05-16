@@ -1,2 +1,9 @@
+# IDE
+.idea
+.vs
+
+# OS
 .DS_Store
+
+# Build
 *.pyc
